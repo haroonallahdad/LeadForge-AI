@@ -99,6 +99,32 @@ export function Sidebar() {
           <span className="text-xs text-slate-400">Ethical · Compliant · Secure</span>
         </div>
 
+        {/* Reminders */}
+        {user?.subscription_plan === 'FREE' ? (
+          <div className="px-3 py-1 mb-2">
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Plan Limit</span>
+            <p className="text-xs text-slate-400 mt-0.5">50 leads / month</p>
+          </div>
+        ) : user?.subscription_end_date ? (
+          <div className="px-3 py-1 mb-2">
+            <span className="text-[11px] font-semibold text-brand-500 uppercase tracking-wider">{user.subscription_plan} Plan</span>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Expires in {Math.max(0, Math.ceil((new Date(user.subscription_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days
+            </p>
+          </div>
+        ) : null}
+
+        {/* Buy me a coffee */}
+        <a 
+          href="https://buymeacoffee.com/haroonallahdad" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="sidebar-item w-full text-[#FFDD00] hover:text-[#FFDD00]/80 hover:bg-[#FFDD00]/10"
+        >
+          <span className="text-lg leading-none">☕</span>
+          <span className="text-sm font-medium">Buy me a Coffee</span>
+        </a>
+
         <button
           onClick={authApi.logout}
           className="sidebar-item w-full text-red-400 hover:text-red-300"

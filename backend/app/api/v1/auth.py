@@ -103,6 +103,7 @@ async def me(current_user=Depends(get_current_user)):
         "role": current_user.role.value,
         "is_active": current_user.is_active,
         "subscription_plan": current_user.subscription_plan,
+        "subscription_end_date": current_user.subscription_end_date.isoformat() if current_user.subscription_end_date else None,
         "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
     }
 

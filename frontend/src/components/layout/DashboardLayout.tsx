@@ -7,6 +7,8 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
 
+import { useUser } from '@/lib/hooks/useUser';
+
 interface DashboardLayoutProps {
   children: ReactNode;
   title?: string;
@@ -45,6 +47,28 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Listen for Plan Upgrades
+  const { user } = useUser();
+  useEffect(() => {
+    if (!user) return;
+    
+    const lastPlan = localStorage.getItem('leadforge_last_plan');
+    if (lastPlan && lastPlan !== user.subscription_plan && user.subscription_plan !== 'FREE') {
+      // Plan upgraded!
+      const newNotif = {
+        id: Date.now(),
+        title: `Your account was upgraded to ${user.subscription_plan}!`,
+        time: 'Just now',
+        read: false
+      };
+      const updated = [newNotif, ...notifications];
+      setNotifications(updated);
+      localStorage.setItem('leadforge_notifications', JSON.stringify(updated));
+      toast.success(`Plan upgraded to ${user.subscription_plan}! 🎉`, { duration: 5000 });
+    }
+    localStorage.setItem('leadforge_last_plan', user.subscription_plan);
+  }, [user, notifications]);
 
   const markAllRead = () => {
     const updated = notifications.map(n => ({ ...n, read: true }));

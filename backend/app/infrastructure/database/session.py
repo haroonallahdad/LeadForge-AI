@@ -57,3 +57,14 @@ async def init_db() -> None:
     from app.infrastructure.database.models import Base
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        
+        # Add subscription_end_date column safely to existing tables
+        try:
+            from sqlalchemy import text
+            await conn.execute(text("ALTER TABLE users ADD COLUMN subscription_end_date TIMESTAMP WITH TIME ZONE;"))
+        except Exception:
+            try:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN subscription_end_date DATETIME;"))
+            except Exception:
+                pass
+

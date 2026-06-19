@@ -146,7 +146,9 @@ async def approve_payment(
     
     proof.status = "APPROVED"
     if proof.user:
+        from datetime import datetime, timedelta, timezone
         proof.user.subscription_plan = proof.plan_requested
+        proof.user.subscription_end_date = datetime.now(timezone.utc) + timedelta(days=30)
     
     await db.commit()
     return {"status": "approved", "plan": proof.plan_requested}

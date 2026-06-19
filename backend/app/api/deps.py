@@ -31,6 +31,14 @@ async def get_current_user(
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
 
+    # Auto-downgrade check
+    if user.subscription_end_date:
+        from datetime import datetime, timezone
+        if datetime.now(timezone.utc) > user.subscription_end_date.replace(tzinfo=timezone.utc):
+            user.subscription_plan = "FREE"
+            user.subscription_end_date = None
+            await db.commit()
+
     return user
 
 

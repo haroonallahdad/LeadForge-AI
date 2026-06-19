@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Upload, CheckCircle2, CreditCard } from 'lucide-react';
+import { Upload, CheckCircle2, CreditCard, Shield } from 'lucide-react';
+import { useUser } from '@/lib/hooks/useUser';
 
 export default function UpgradePage() {
   const router = useRouter();
+  const { user } = useUser();
   const [selectedPlan, setSelectedPlan] = useState<'SIMPLE' | 'PREMIUM'>('SIMPLE');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -59,6 +61,19 @@ export default function UpgradePage() {
     <DashboardLayout title="Upgrade Plan" subtitle="Unlock more leads and advanced features">
       <div className="max-w-5xl mx-auto space-y-8">
         
+        {/* Current Plan Badge */}
+        {user && (
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-900 border border-white/10">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${user.subscription_plan === 'PREMIUM' ? 'bg-accent-500/20 text-accent-400' : user.subscription_plan === 'SIMPLE' ? 'bg-brand-500/20 text-brand-400' : 'bg-slate-800 text-slate-400'}`}>
+              <Shield size={20} />
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Current Plan</p>
+              <p className="text-white font-bold">{user.subscription_plan}</p>
+            </div>
+          </div>
+        )}
+
         {/* Payment Details Card */}
         <div className="card-dark p-6 border-brand-500/30">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -92,14 +107,17 @@ export default function UpgradePage() {
             
             <button 
               onClick={() => setSelectedPlan('SIMPLE')}
+              disabled={user?.subscription_plan === 'SIMPLE' || user?.subscription_plan === 'PREMIUM'}
               className={`w-full text-left p-5 rounded-xl border transition-all ${
-                selectedPlan === 'SIMPLE' 
+                user?.subscription_plan === 'SIMPLE' || user?.subscription_plan === 'PREMIUM'
+                  ? 'bg-slate-900 border-white/5 opacity-50 cursor-not-allowed'
+                  : selectedPlan === 'SIMPLE' 
                   ? 'bg-brand-500/10 border-brand-500/50 ring-1 ring-brand-500/50' 
                   : 'bg-slate-900 border-white/10 hover:border-white/20'
               }`}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-white text-lg">Simple Plan</span>
+                <span className="font-bold text-white text-lg">Simple Plan {user?.subscription_plan === 'SIMPLE' && '(Current)'}</span>
                 <span className="text-xl font-bold text-brand-400">$5</span>
               </div>
               <p className="text-xs text-slate-400">Up to 500 leads per month.</p>
@@ -107,14 +125,17 @@ export default function UpgradePage() {
 
             <button 
               onClick={() => setSelectedPlan('PREMIUM')}
+              disabled={user?.subscription_plan === 'PREMIUM'}
               className={`w-full text-left p-5 rounded-xl border transition-all ${
-                selectedPlan === 'PREMIUM' 
+                user?.subscription_plan === 'PREMIUM'
+                  ? 'bg-slate-900 border-white/5 opacity-50 cursor-not-allowed'
+                  : selectedPlan === 'PREMIUM' 
                   ? 'bg-accent-500/10 border-accent-500/50 ring-1 ring-accent-500/50' 
                   : 'bg-slate-900 border-white/10 hover:border-white/20'
               }`}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-white text-lg">Premium Plan</span>
+                <span className="font-bold text-white text-lg">Premium Plan {user?.subscription_plan === 'PREMIUM' && '(Current)'}</span>
                 <span className="text-xl font-bold text-accent-400">$15</span>
               </div>
               <p className="text-xs text-slate-400">Unlimited leads and advanced features.</p>
