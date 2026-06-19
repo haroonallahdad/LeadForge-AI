@@ -2,7 +2,7 @@
 LeadForge AI — Auth API Routes
 Register, login, profile endpoints.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, EmailStr
 
@@ -34,7 +34,7 @@ class TokenResponse(BaseModel):
 
 
 @router.post("/register", status_code=201)
-async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
+async def register(data: RegisterRequest, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
     user_repo = UserRepository(db)
     existing = await user_repo.get_by_email(data.email)
     if existing:
@@ -66,7 +66,7 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     
     # Generate verification token (just using access token generator for simplicity)
     verify_token = create_access_token(str(user.id), user.email, "verify")
-    send_verification_email(user.email, verify_token)
+    background_tasks.add_task(send_verification_email, user.email, verify_token)
     
     return {"status": "pending_verification", "message": "Verification email sent"}
 
@@ -137,13 +137,13 @@ class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 @router.post("/forgot-password", status_code=200)
-async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+async def forgot_password(data: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
     user_repo = UserRepository(db)
     user = await user_repo.get_by_email(data.email)
     
     if user:
         reset_token = create_access_token(str(user.id), user.email, "reset")
-        send_password_reset_email(user.email, reset_token)
+        background_tasks.add_task(send_password_reset_email, user.email, reset_token)
     
     return {
         "status": "success", 
