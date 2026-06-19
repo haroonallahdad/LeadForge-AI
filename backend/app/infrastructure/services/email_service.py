@@ -37,8 +37,8 @@ def _send_email(to_email: str, subject: str, body: str):
         logger.error(f"Failed to send email to {to_email}: {str(e)}")
 
 def send_verification_email(to_email: str, token: str):
-    link = f"http://localhost:3000/verify-email?token={token}"
-    # Change to actual domain in production
+    frontend_url = os.environ.get("FRONTEND_URL", "https://lead-forge-ai-six.vercel.app")
+    link = f"{frontend_url}/verify-email?token={token}"
     
     body = f"""
     <html>
@@ -53,7 +53,8 @@ def send_verification_email(to_email: str, token: str):
     _send_email(to_email, "Verify your LeadForge AI Account", body)
 
 def send_password_reset_email(to_email: str, token: str):
-    link = f"http://localhost:3000/reset-password?token={token}"
+    frontend_url = os.environ.get("FRONTEND_URL", "https://lead-forge-ai-six.vercel.app")
+    link = f"{frontend_url}/reset-password?token={token}"
     
     body = f"""
     <html>
