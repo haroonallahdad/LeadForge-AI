@@ -8,6 +8,7 @@ from pydantic import BaseModel, EmailStr
 
 from app.infrastructure.database.session import get_db
 from app.infrastructure.repositories.job_repository import UserRepository
+from app.infrastructure.database.models import PaymentProof
 from app.application.services.auth_service import hash_password, verify_password, create_access_token
 from app.api.deps import get_current_user
 
@@ -43,8 +44,8 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
         "hashed_password": hash_password(data.password),
         "full_name": data.full_name,
         "role": "analyst",
-        "is_active": True,
-        "is_verified": True,
+        "is_active": False,
+        "is_verified": False,
     })
     await db.commit()
 
@@ -67,7 +68,7 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not user.is_active:
-        raise HTTPException(status_code=401, detail="Account is disabled")
+        raise HTTPException(status_code=401, detail="Account pending admin approval")
 
     token = create_access_token(str(user.id), user.email, user.role.value)
     return {
@@ -89,5 +90,27 @@ async def me(current_user=Depends(get_current_user)):
         "full_name": current_user.full_name,
         "role": current_user.role.value,
         "is_active": current_user.is_active,
+        "subscription_plan": current_user.subscription_plan,
         "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
     }
+
+
+class PaymentUploadRequest(BaseModel):
+    plan_requested: str
+    proof_image_base64: str
+
+@router.post("/payments/upload", status_code=201)
+async def upload_payment_proof(
+    data: PaymentUploadRequest,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    proof = PaymentProof(
+        user_id=current_user.id,
+        plan_requested=data.plan_requested,
+        proof_image_base64=data.proof_image_base64,
+        status="PENDING"
+    )
+    db.add(proof)
+    await db.commit()
+    return {"status": "uploaded"}

@@ -20,6 +20,7 @@ from app.api.v1.leads import router as leads_router
 from app.api.v1.misc import (
     export_router, analytics_router, industries_router, email_router
 )
+from app.api.v1.admin import router as admin_router
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Logging
@@ -92,6 +93,7 @@ app.include_router(export_router, prefix=API_PREFIX)
 app.include_router(analytics_router, prefix=API_PREFIX)
 app.include_router(industries_router, prefix=API_PREFIX)
 app.include_router(email_router, prefix=API_PREFIX)
+app.include_router(admin_router, prefix=API_PREFIX)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

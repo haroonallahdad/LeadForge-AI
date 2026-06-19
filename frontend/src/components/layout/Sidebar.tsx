@@ -17,6 +17,8 @@ const NAV_ITEMS = [
   { href: '/exports', icon: Download, label: 'Exports' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/industries', icon: Building2, label: 'Industries' },
+  { href: '/upgrade', icon: Shield, label: 'Upgrade Plan' },
+  { href: '/admin', icon: Users, label: 'Admin Panel' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 

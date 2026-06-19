@@ -83,8 +83,9 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.ANALYST, nullable=False)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=False)  # False by default for admin approval
     is_verified = Column(Boolean, default=False)
+    subscription_plan = Column(String(50), default="FREE") # FREE, SIMPLE, PREMIUM
     avatar_url = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -94,6 +95,7 @@ class User(Base):
     search_jobs = relationship("SearchJob", back_populates="user")
     exports = relationship("ExportHistory", back_populates="user")
     contact_history = relationship("ContactHistory", back_populates="user")
+    payment_proofs = relationship("PaymentProof", back_populates="user")
 
     def __repr__(self):
         return f"<User {self.email}>"
@@ -421,3 +423,21 @@ class AppLog(Base):
 
     def __repr__(self):
         return f"<AppLog [{self.level}] {self.message[:50]}>"
+
+
+class PaymentProof(Base):
+    """Manual payment screenshots uploaded by users."""
+    __tablename__ = "payment_proofs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    plan_requested = Column(String(50), nullable=False)  # SIMPLE or PREMIUM
+    proof_image_base64 = Column(Text, nullable=False)
+    status = Column(String(20), default="PENDING")  # PENDING, APPROVED, REJECTED
+    uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    user = relationship("User", back_populates="payment_proofs")
+
+    def __repr__(self):
+        return f"<PaymentProof {self.plan_requested} by {self.user_id}>"
