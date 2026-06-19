@@ -111,7 +111,33 @@ export default function HomePage() {
             <p className="text-slate-400">Choose the plan that fits your agency.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <div className="card-dark p-8 relative overflow-hidden group border-transparent hover:border-white/10 transition-colors">
+              <h3 className="text-2xl font-bold text-white mb-2">Free Plan</h3>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-4xl font-extrabold text-white">$0</span>
+                <span className="text-slate-400">/ forever</span>
+              </div>
+              <p className="text-sm text-slate-400 mb-8 h-10">Perfect for exploring the platform capabilities.</p>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3 text-sm text-slate-300">
+                  <CheckCircle2 size={18} className="text-slate-500" />
+                  <span><strong>10 leads</strong> per search</span>
+                </li>
+                <li className="flex items-center gap-3 text-sm text-slate-300">
+                  <CheckCircle2 size={18} className="text-slate-500" />
+                  <span>Max 25 leads / month</span>
+                </li>
+                <li className="flex items-center gap-3 text-sm text-slate-300">
+                  <CheckCircle2 size={18} className="text-slate-500" />
+                  <span>Basic Heuristic Scoring</span>
+                </li>
+              </ul>
+              <Link href="/login?mode=register" className="btn-secondary w-full justify-center py-3 border border-white/10 hover:bg-white/5 text-slate-300">Get Started</Link>
+            </div>
+
             {/* Simple Plan */}
             <div className="card-dark p-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-slate-800/50 rounded-bl-full -z-10 transition-transform group-hover:scale-110" />

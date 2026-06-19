@@ -141,15 +141,15 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-6 py-4">
                       {u.is_active ? (
-                        <span className="text-success-400 flex items-center gap-1.5"><Check size={14} /> Active</span>
+                        <span className="text-success-400 flex items-center gap-1.5"><Check size={14} /> Verified</span>
                       ) : (
-                        <span className="text-warning-400 flex items-center gap-1.5"><ShieldAlert size={14} /> Pending</span>
+                        <span className="text-warning-400 flex items-center gap-1.5"><ShieldAlert size={14} /> Unverified</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       {!u.is_active && (
                         <button onClick={() => approveUser(u.id)} className="btn-primary py-1.5 px-4 text-xs">
-                          Approve Access
+                          Force Verify
                         </button>
                       )}
                     </td>

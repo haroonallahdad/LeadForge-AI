@@ -78,6 +78,16 @@ export const authApi = {
     return res.data;
   },
 
+  verifyEmail: async (token: string) => {
+    const res = await api.post('/api/v1/auth/verify-email', { token });
+    return res.data;
+  },
+
+  resetPassword: async (token: string, new_password: string) => {
+    const res = await api.post('/api/v1/auth/reset-password', { token, new_password });
+    return res.data;
+  },
+
   deleteAccount: async () => {
     const res = await api.delete('/api/v1/auth/me');
     Cookies.remove(TOKEN_KEY);

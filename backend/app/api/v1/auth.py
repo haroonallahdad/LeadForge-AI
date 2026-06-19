@@ -8,8 +8,9 @@ from pydantic import BaseModel, EmailStr
 
 from app.infrastructure.database.session import get_db
 from app.infrastructure.repositories.job_repository import UserRepository
-from app.infrastructure.database.models import PaymentProof
+from app.infrastructure.database.models import PaymentProof, User
 from app.application.services.auth_service import hash_password, verify_password, create_access_token
+from app.infrastructure.services.email_service import send_verification_email, send_password_reset_email
 from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -32,7 +33,7 @@ class TokenResponse(BaseModel):
     user: dict
 
 
-@router.post("/register", response_model=TokenResponse, status_code=201)
+@router.post("/register", status_code=201)
 async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     user_repo = UserRepository(db)
     existing = await user_repo.get_by_email(data.email)
@@ -51,16 +52,23 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     })
     await db.commit()
 
-    token = create_access_token(str(user.id), user.email, user.role.value)
-    return {
-        "access_token": token,
-        "user": {
-            "id": str(user.id),
-            "email": user.email,
-            "full_name": user.full_name,
-            "role": user.role.value,
+    if is_root:
+        token = create_access_token(str(user.id), user.email, user.role.value)
+        return {
+            "access_token": token,
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.value,
+            }
         }
-    }
+    
+    # Generate verification token (just using access token generator for simplicity)
+    verify_token = create_access_token(str(user.id), user.email, "verify")
+    send_verification_email(user.email, verify_token)
+    
+    return {"status": "pending_verification", "message": "Verification email sent"}
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -70,6 +78,8 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not user.is_active:
+        if not user.is_verified:
+            raise HTTPException(status_code=401, detail="Please verify your email before logging in.")
         raise HTTPException(status_code=401, detail="Account pending admin approval")
 
     token = create_access_token(str(user.id), user.email, user.role.value)
@@ -128,13 +138,64 @@ class ForgotPasswordRequest(BaseModel):
 
 @router.post("/forgot-password", status_code=200)
 async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
-    # This is a mock endpoint for V2.0
-    # In a real production system, this would trigger SendGrid/AWS SES.
-    # We check if user exists just for realistic delay, but return success either way to prevent email enumeration.
     user_repo = UserRepository(db)
-    await user_repo.get_by_email(data.email)
+    user = await user_repo.get_by_email(data.email)
+    
+    if user:
+        reset_token = create_access_token(str(user.id), user.email, "reset")
+        send_password_reset_email(user.email, reset_token)
     
     return {
         "status": "success", 
         "message": "If an account exists for that email, a password reset link has been sent."
     }
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+@router.post("/verify-email", status_code=200)
+async def verify_email(data: VerifyEmailRequest, db: AsyncSession = Depends(get_db)):
+    from app.application.services.auth_service import decode_access_token
+    payload = decode_access_token(data.token)
+    if not payload or payload.get("role") != "verify":
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    
+    user_id = payload.get("sub")
+    
+    from sqlalchemy import select
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    user.is_verified = True
+    user.is_active = True
+    await db.commit()
+    
+    return {"status": "success", "message": "Email verified successfully. You can now log in."}
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+@router.post("/reset-password", status_code=200)
+async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    from app.application.services.auth_service import decode_access_token
+    payload = decode_access_token(data.token)
+    if not payload or payload.get("role") != "reset":
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    user_id = payload.get("sub")
+    
+    from sqlalchemy import select
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    user.hashed_password = hash_password(data.new_password)
+    await db.commit()
+    
+    return {"status": "success", "message": "Password reset successfully. You can now log in."}
