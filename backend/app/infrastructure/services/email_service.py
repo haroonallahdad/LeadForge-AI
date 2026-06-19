@@ -46,6 +46,8 @@ def _send_email(to_email: str, subject: str, body: str):
             logger.info(f"Email sent successfully via Resend API to {to_email}")
             return
         except Exception as e:
+            if hasattr(e, 'response') and e.response is not None:
+                logger.error(f"Resend API Error Body: {e.response.text}")
             logger.error(f"Failed to send email via Resend to {to_email}: {str(e)}")
             # Fall back to SMTP if it fails, assuming SMTP is configured
 

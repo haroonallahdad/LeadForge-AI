@@ -73,14 +73,14 @@ async def start_search(
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         
         result = await db.execute(
-            select(func.sum(SearchJob.total_found))
+            select(func.sum(SearchJob.lead_count))
             .where(SearchJob.user_id == current_user.id)
             .where(SearchJob.created_at >= start_of_month)
         )
         total_leads_this_month = result.scalar() or 0
         
-        if current_user.subscription_plan == "FREE" and (total_leads_this_month + data.lead_count > 25):
-            raise HTTPException(status_code=403, detail="Free plan monthly limit reached (25 leads). Please upgrade.")
+        if current_user.subscription_plan == "FREE" and (total_leads_this_month + data.lead_count > 50):
+            raise HTTPException(status_code=403, detail="Free plan monthly limit reached (50 leads). Please upgrade.")
             
         if current_user.subscription_plan == "SIMPLE" and (total_leads_this_month + data.lead_count > 500):
             raise HTTPException(status_code=403, detail="Simple plan monthly limit reached (500 leads). Please upgrade to Premium.")
