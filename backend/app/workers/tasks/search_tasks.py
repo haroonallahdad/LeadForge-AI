@@ -129,7 +129,6 @@ async def _run_pipeline_async(task_or_job_id, job_id: str = None):
                     "city": company.city or city,
                     "address": company.address,
                     "website": company.website,
-                    "phone": None,  # will be set via contact_info
                     "rating": company.rating,
                     "review_count": company.review_count,
                     "source": company.source,
