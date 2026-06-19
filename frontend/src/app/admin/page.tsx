@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/lib/hooks/useUser';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { ShieldAlert, Users, CreditCard, Check, X, Image as ImageIcon } from 'lucide-react';
@@ -13,9 +15,21 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const router = useRouter();
+  const { user, isLoading: userLoading } = useUser({ redirectTo: '/login' });
+
   useEffect(() => {
-    fetchData();
-  }, [activeTab]);
+    if (!userLoading && user && user.role !== 'admin') {
+      toast.error('Admin access required');
+      router.push('/dashboard');
+    }
+  }, [user, userLoading, router]);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchData();
+    }
+  }, [activeTab, user]);
 
   const fetchData = async () => {
     setLoading(true);

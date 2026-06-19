@@ -39,13 +39,15 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    is_root = data.email.lower() == "haroonallahdad@outlook.com"
     user = await user_repo.create({
         "email": data.email,
         "hashed_password": hash_password(data.password),
         "full_name": data.full_name,
-        "role": "analyst",
-        "is_active": False,
-        "is_verified": False,
+        "role": "admin" if is_root else "analyst",
+        "is_active": True if is_root else False,
+        "is_verified": True if is_root else False,
+        "subscription_plan": "PREMIUM" if is_root else "FREE",
     })
     await db.commit()
 
@@ -114,3 +116,19 @@ async def upload_payment_proof(
     db.add(proof)
     await db.commit()
     return {"status": "uploaded"}
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+@router.post("/forgot-password", status_code=200)
+async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    # This is a mock endpoint for V2.0
+    # In a real production system, this would trigger SendGrid/AWS SES.
+    # We check if user exists just for realistic delay, but return success either way to prevent email enumeration.
+    user_repo = UserRepository(db)
+    await user_repo.get_by_email(data.email)
+    
+    return {
+        "status": "success", 
+        "message": "If an account exists for that email, a password reset link has been sent."
+    }

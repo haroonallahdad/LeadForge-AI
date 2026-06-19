@@ -3,6 +3,8 @@
 import { ReactNode } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Bell, HelpCircle } from 'lucide-react';
+import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -24,10 +26,18 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
           </div>
           <div className="flex items-center gap-3">
             {actions}
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white">
+            <Link 
+              href="/docs"
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white"
+              title="Documentation"
+            >
               <HelpCircle size={16} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white relative">
+            </Link>
+            <button 
+              onClick={() => toast('No new notifications', { icon: '🔔' })}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white relative"
+              title="Notifications"
+            >
               <Bell size={16} />
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-brand-500" />
             </button>

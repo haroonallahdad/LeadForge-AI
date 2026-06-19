@@ -73,6 +73,11 @@ export const authApi = {
     return res.data;
   },
 
+  forgotPassword: async (email: string) => {
+    const res = await api.post('/api/v1/auth/forgot-password', { email });
+    return res.data;
+  },
+
   logout: () => {
     Cookies.remove(TOKEN_KEY);
     localStorage.removeItem(TOKEN_KEY);

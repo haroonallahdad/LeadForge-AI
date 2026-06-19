@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { searchApi, industriesApi } from '@/lib/api';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Search, MapPin, Building2, Hash, Play, Loader2, Info, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Building2, Hash, Play, Loader2, Info, ChevronRight, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/lib/hooks/useUser';
+import Link from 'next/link';
 
 const COUNTRIES = [
   'USA', 'United Kingdom', 'Canada', 'Australia', 'Germany',
@@ -28,12 +30,15 @@ const US_STATES = [
 
 export default function SearchPage() {
   const router = useRouter();
+  const { user } = useUser();
+  const maxLeads = user?.subscription_plan === 'FREE' ? 10 : 500;
+
   const [form, setForm] = useState({
     industry: '',
     country: 'USA',
     state: '',
     city: '',
-    lead_count: 50,
+    lead_count: user?.subscription_plan === 'FREE' ? 10 : 50,
   });
   const [industrySearch, setIndustrySearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -225,21 +230,33 @@ export default function SearchPage() {
             <div className="flex items-center gap-4">
               <input
                 type="range"
-                min={5} max={500} step={5}
-                value={form.lead_count}
+                min={5} max={maxLeads} step={5}
+                value={Math.min(form.lead_count, maxLeads)}
                 onChange={(e) => setForm({ ...form, lead_count: Number(e.target.value) })}
                 className="flex-1 h-2 rounded-full bg-white/10 accent-brand-500"
               />
               <div className="w-20">
                 <input
                   type="number"
-                  min={5} max={500}
-                  value={form.lead_count}
-                  onChange={(e) => setForm({ ...form, lead_count: Number(e.target.value) })}
+                  min={5} max={maxLeads}
+                  value={Math.min(form.lead_count, maxLeads)}
+                  onChange={(e) => setForm({ ...form, lead_count: Math.min(Number(e.target.value), maxLeads) })}
                   className="input-dark text-center"
                 />
               </div>
             </div>
+            
+            {user?.subscription_plan === 'FREE' && (
+              <div className="mt-4 p-3 bg-brand-500/10 border border-brand-500/20 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-slate-300">
+                  <Lock size={14} className="text-brand-400" />
+                  Free plan is limited to 10 leads per search.
+                </div>
+                <Link href="/upgrade" className="text-xs font-semibold text-brand-400 hover:text-white transition-colors">
+                  Upgrade Plan
+                </Link>
+              </div>
+            )}
             <div className="flex justify-between text-xs text-slate-500 mt-1">
               <span>5 (Quick)</span>
               <span>{form.lead_count} leads</span>

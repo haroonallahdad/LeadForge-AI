@@ -8,6 +8,7 @@ import {
   BarChart3, Building2, Settings, LogOut, Zap, ChevronRight,
   Shield
 } from 'lucide-react';
+import { useUser } from '@/lib/hooks/useUser';
 
 const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
   { href: '/exports', icon: Download, label: 'Exports' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/industries', icon: Building2, label: 'Industries' },
+  { href: '/integrations', icon: Zap, label: 'Integrations' },
   { href: '/upgrade', icon: Shield, label: 'Upgrade Plan' },
   { href: '/admin', icon: Users, label: 'Admin Panel' },
   { href: '/settings', icon: Settings, label: 'Settings' },
@@ -24,6 +26,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
 
   return (
     <aside className="w-64 flex-shrink-0 h-screen sticky top-0 flex flex-col glass border-r border-white/5 z-30">
@@ -66,19 +69,24 @@ export function Sidebar() {
         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider px-3 pt-4 pb-1">
           Insights
         </p>
-        {NAV_ITEMS.slice(4).map(({ href, icon: Icon, label }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`sidebar-item ${pathname === href ? 'active' : ''}`}
-          >
-            <Icon size={17} />
-            <span>{label}</span>
-            {pathname === href && (
-              <ChevronRight size={14} className="ml-auto opacity-50" />
-            )}
-          </Link>
-        ))}
+        {NAV_ITEMS.slice(4).map(({ href, icon: Icon, label }) => {
+          // Hide admin panel if not admin
+          if (href === '/admin' && user?.role !== 'admin') return null;
+          
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`sidebar-item ${pathname === href ? 'active' : ''}`}
+            >
+              <Icon size={17} />
+              <span>{label}</span>
+              {pathname === href && (
+                <ChevronRight size={14} className="ml-auto opacity-50" />
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Bottom section */}
