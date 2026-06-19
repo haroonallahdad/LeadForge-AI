@@ -96,6 +96,12 @@ async def me(current_user=Depends(get_current_user)):
         "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
     }
 
+@router.delete("/me", status_code=200)
+async def delete_current_user(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    await db.delete(current_user)
+    await db.commit()
+    return {"status": "success", "message": "Account deleted successfully"}
+
 
 class PaymentUploadRequest(BaseModel):
     plan_requested: str

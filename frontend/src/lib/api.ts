@@ -78,6 +78,13 @@ export const authApi = {
     return res.data;
   },
 
+  deleteAccount: async () => {
+    const res = await api.delete('/api/v1/auth/me');
+    Cookies.remove(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    return res.data;
+  },
+
   logout: () => {
     Cookies.remove(TOKEN_KEY);
     localStorage.removeItem(TOKEN_KEY);

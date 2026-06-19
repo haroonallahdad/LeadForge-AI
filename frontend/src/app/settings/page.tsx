@@ -1,9 +1,28 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Shield, Key, Globe, Database, Zap, Info } from 'lucide-react';
+import { Shield, Key, Globe, Database, Zap, Info, AlertTriangle } from 'lucide-react';
+import { authApi } from '@/lib/api';
+import toast from 'react-hot-toast';
+import { useState } from 'react';
 
 export default function SettingsPage() {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you absolute sure you want to delete your account? This action cannot be undone.')) return;
+    
+    setIsDeleting(true);
+    try {
+      await authApi.deleteAccount();
+      toast.success('Account deleted successfully');
+      window.location.href = '/login';
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'Failed to delete account');
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <DashboardLayout title="Settings" subtitle="Platform configuration and API keys">
       <div className="max-w-2xl space-y-5">
@@ -114,6 +133,27 @@ export default function SettingsPage() {
             ))}
           </div>
         </div>
+
+        {/* Danger Zone */}
+        <div className="card-dark border-red-500/20">
+          <h3 className="text-sm font-semibold text-red-400 flex items-center gap-2 mb-4">
+            <AlertTriangle size={14} /> Danger Zone
+          </h3>
+          <div className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/10">
+            <div>
+              <h4 className="text-sm font-medium text-white">Delete Account</h4>
+              <p className="text-xs text-slate-400 mt-1">Permanently delete your account and all associated data.</p>
+            </div>
+            <button 
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm font-medium transition-colors border border-red-500/20"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Account'}
+            </button>
+          </div>
+        </div>
+
       </div>
     </DashboardLayout>
   );
