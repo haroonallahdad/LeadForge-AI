@@ -34,7 +34,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const approveUser = async (id: str) => {
+  const approveUser = async (id: string) => {
     try {
       await api.post(`/api/v1/admin/users/${id}/approve`);
       toast.success('User approved');
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const approvePayment = async (id: str) => {
+  const approvePayment = async (id: string) => {
     try {
       await api.post(`/api/v1/admin/payments/${id}/approve`);
       toast.success('Payment approved and plan upgraded!');
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const rejectPayment = async (id: str) => {
+  const rejectPayment = async (id: string) => {
     try {
       await api.post(`/api/v1/admin/payments/${id}/reject`);
       toast.error('Payment rejected');
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const viewProofImage = async (id: str) => {
+  const viewProofImage = async (id: string) => {
     try {
       const res = await api.get(`/api/v1/admin/payments/${id}/image`);
       setSelectedImage(res.data.image_base64);
