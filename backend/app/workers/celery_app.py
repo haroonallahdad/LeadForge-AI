@@ -4,6 +4,7 @@ Configures Celery with Redis as broker and result backend.
 """
 try:
     from celery import Celery
+    from app.config import settings
     celery_app = Celery(
         "leadforge",
         broker=settings.celery_broker_url,

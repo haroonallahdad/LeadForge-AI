@@ -81,7 +81,7 @@ export default function LoginPage() {
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             {mode === 'register' && (
               <div>
                 <label className="block text-xs font-medium text-slate-400 mb-1.5">Full Name</label>
@@ -104,6 +104,7 @@ export default function LoginPage() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="you@company.com"
                 required
+                autoComplete="off"
                 className="input-dark"
               />
             </div>
@@ -117,6 +118,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 required
                 minLength={8}
+                autoComplete="new-password"
                 className="input-dark"
               />
             </div>

@@ -94,7 +94,7 @@ export default function SearchPage() {
         {/* Search Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Industry */}
-          <div className="card-dark">
+          <div className="card-dark relative z-50">
             <div className="flex items-center gap-2 mb-4">
               <Building2 size={16} className="text-brand-400" />
               <h3 className="text-sm font-semibold text-white">Industry</h3>
@@ -165,7 +165,7 @@ export default function SearchPage() {
           </div>
 
           {/* Location */}
-          <div className="card-dark">
+          <div className="card-dark relative z-40">
             <div className="flex items-center gap-2 mb-4">
               <MapPin size={16} className="text-accent-400" />
               <h3 className="text-sm font-semibold text-white">Location</h3>
