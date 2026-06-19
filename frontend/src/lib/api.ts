@@ -84,8 +84,18 @@ export const authApi = {
     window.location.href = '/login';
   },
 
-  getToken: () => Cookies.get(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY),
-  isLoggedIn: () => !!(Cookies.get(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY)),
+  getToken: () => {
+    if (typeof window !== 'undefined') {
+      return Cookies.get(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
+    }
+    return null;
+  },
+  isLoggedIn: () => {
+    if (typeof window !== 'undefined') {
+      return !!(Cookies.get(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY));
+    }
+    return false;
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
