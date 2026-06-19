@@ -116,7 +116,7 @@ export function Sidebar() {
 
         {/* Buy me a coffee */}
         <a 
-          href="https://buymeacoffee.com/haroonallahdad" 
+          href="https://buymeacoffee.com/HaroonAllahdad" 
           target="_blank" 
           rel="noopener noreferrer"
           className="sidebar-item w-full text-[#FFDD00] hover:text-[#FFDD00]/80 hover:bg-[#FFDD00]/10"
