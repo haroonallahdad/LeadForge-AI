@@ -20,9 +20,14 @@ export default function LoginPage() {
         toast.success('Welcome back!');
         router.push('/dashboard');
       } else if (mode === 'register') {
-        await authApi.register(form.email, form.password, form.full_name);
-        toast.success('Account created!');
-        router.push('/dashboard');
+        const res = await authApi.register(form.email, form.password, form.full_name);
+        if (res.status === 'pending_verification') {
+          toast.success(res.message || 'Verification email sent! Please check your inbox.');
+          setMode('login');
+        } else {
+          toast.success('Account created and verified!');
+          router.push('/dashboard');
+        }
       } else if (mode === 'forgot') {
         await authApi.forgotPassword(form.email);
         toast.success('If an account exists, a reset link has been sent to your email.');

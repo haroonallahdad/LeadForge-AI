@@ -40,7 +40,9 @@ api.interceptors.response.use(
       Cookies.remove(TOKEN_KEY);
       if (typeof window !== 'undefined') {
         localStorage.removeItem(TOKEN_KEY);
-        window.location.href = '/login';
+        if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/verify-email') && !window.location.pathname.includes('/reset-password')) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
@@ -62,10 +64,13 @@ export const authApi = {
 
   register: async (email: string, password: string, full_name: string) => {
     const res = await api.post('/api/v1/auth/register', { email, password, full_name });
-    const { access_token, user } = res.data;
-    Cookies.set(TOKEN_KEY, access_token, { expires: 1 });
-    localStorage.setItem(TOKEN_KEY, access_token);
-    return { token: access_token, user };
+    if (res.data.access_token) {
+      const { access_token, user } = res.data;
+      Cookies.set(TOKEN_KEY, access_token, { expires: 1 });
+      localStorage.setItem(TOKEN_KEY, access_token);
+      return { token: access_token, user };
+    }
+    return res.data; // { status: "pending_verification", message: "..." }
   },
 
   me: async () => {
