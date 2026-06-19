@@ -93,7 +93,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
 
               {/* Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 card-dark shadow-2xl border border-white/10 rounded-xl overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 z-50">
+                <div className="absolute right-0 mt-2 w-80 bg-slate-900 shadow-2xl border border-slate-700 rounded-xl overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 z-50">
                   <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center">
                     <h3 className="font-semibold text-white text-sm">Notifications</h3>
                     <div className="flex gap-2">
@@ -114,7 +114,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
                     ) : (
                       <div className="divide-y divide-white/5">
                         {notifications.map((notif, idx) => (
-                          <div key={idx} className={`p-4 hover:bg-white/5 transition-colors ${!notif.read ? 'bg-brand-500/5' : ''}`}>
+                          <div key={idx} className={`p-4 hover:bg-white/10 transition-colors ${!notif.read ? 'bg-brand-500/10' : ''}`}>
                             <div className="flex items-start justify-between gap-2">
                               <p className={`text-sm ${!notif.read ? 'text-white font-medium' : 'text-slate-300'}`}>
                                 {notif.title}
