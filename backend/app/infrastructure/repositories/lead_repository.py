@@ -37,6 +37,7 @@ class LeadRepository:
                 selectinload(Lead.notes),
                 selectinload(Lead.tags),
                 selectinload(Lead.contact_history),
+                selectinload(Lead.search_job),
             )
             .where(Lead.id == lead_id)
         )
@@ -57,6 +58,7 @@ class LeadRepository:
         sort_by: str = "lead_score",
         sort_dir: str = "desc",
         tag_ids: Optional[List[UUID]] = None,
+        user_id: Optional[UUID] = None,
     ) -> tuple[List[Lead], int]:
         """Get paginated leads with filtering and sorting."""
         query = select(Lead).options(
@@ -66,6 +68,11 @@ class LeadRepository:
 
         # Filters
         filters = []
+        if user_id:
+            from app.infrastructure.database.models import SearchJob
+            query = query.join(SearchJob, Lead.search_job_id == SearchJob.id)
+            filters.append(SearchJob.user_id == user_id)
+
         if search:
             filters.append(
                 or_(
@@ -94,6 +101,10 @@ class LeadRepository:
 
         # Count total
         count_query = select(func.count()).select_from(Lead)
+        if user_id:
+            from app.infrastructure.database.models import SearchJob
+            count_query = count_query.join(SearchJob, Lead.search_job_id == SearchJob.id)
+            
         if filters:
             count_query = count_query.where(*filters)
         total_result = await self.db.execute(count_query)

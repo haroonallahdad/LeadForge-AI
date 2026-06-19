@@ -149,11 +149,13 @@ async def list_leads(
 ):
     """Get paginated, filtered, sorted leads."""
     lead_repo = LeadRepository(db)
+    user_id_filter = current_user.id if current_user.role.value != "admin" else None
+    
     leads, total = await lead_repo.get_all(
         skip=skip, limit=limit, search=search, status=status,
         industry=industry, country=country, state=state, city=city,
         min_score=min_score, max_score=max_score,
-        sort_by=sort_by, sort_dir=sort_dir,
+        sort_by=sort_by, sort_dir=sort_dir, user_id=user_id_filter
     )
     return {
         "total": total,
@@ -174,6 +176,12 @@ async def get_lead(
     lead = await lead_repo.get_by_id(lead_id)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
+        
+    # Privacy check
+    if current_user.role.value != "admin":
+        if not lead.search_job or str(lead.search_job.user_id) != str(current_user.id):
+            raise HTTPException(status_code=403, detail="Not authorized to view this lead")
+            
     return _serialize_lead_detail(lead)
 
 

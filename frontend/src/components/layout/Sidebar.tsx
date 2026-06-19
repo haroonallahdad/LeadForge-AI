@@ -72,6 +72,8 @@ export function Sidebar() {
         {NAV_ITEMS.slice(4).map(({ href, icon: Icon, label }) => {
           // Hide admin panel if not admin
           if (href === '/admin' && user?.role !== 'admin') return null;
+          // Hide upgrade plan if admin
+          if (href === '/upgrade' && user?.role === 'admin') return null;
           
           return (
             <Link
