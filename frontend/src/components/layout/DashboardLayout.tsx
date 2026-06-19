@@ -93,7 +93,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
 
               {/* Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 card-dark shadow-xl border border-white/10 rounded-xl overflow-hidden py-2 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-2 w-80 bg-slate-900 shadow-2xl border border-white/10 rounded-xl overflow-hidden py-2 animate-in fade-in slide-in-from-top-2 z-50">
                   <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center">
                     <h3 className="font-semibold text-white text-sm">Notifications</h3>
                     <div className="flex gap-2">
