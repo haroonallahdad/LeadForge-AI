@@ -253,54 +253,91 @@ class GooglePlacesAdapter(BaseAdapter):
             return await self._fallback.search_companies(industry, city, state, country, limit)
 
         import httpx
+        import asyncio
         results = []
         location_str = self.build_location_string(city, state, country)
         query = f"{industry} in {location_str}"
+        next_page_token = None
 
         try:
             async with httpx.AsyncClient(timeout=30) as client:
-                # Text search to get place IDs
-                response = await client.get(
-                    "https://maps.googleapis.com/maps/api/place/textsearch/json",
-                    params={
+                while len(results) < limit:
+                    params = {
                         "query": query,
                         "key": self.api_key,
                         "type": "establishment",
                     }
-                )
-                data = response.json()
+                    if next_page_token:
+                        params["pagetoken"] = next_page_token
+                        # Google requires a short delay before next_page_token becomes valid
+                        await asyncio.sleep(2)
 
-                for place in data.get("results", [])[:limit]:
-                    name = place.get("name", "")
-                    website = place.get("website")
-                    rating = place.get("rating")
-                    review_count = place.get("user_ratings_total")
-                    address = place.get("formatted_address", "")
-                    place_id = place.get("place_id", "")
+                    # Text search to get place IDs
+                    response = await client.get(
+                        "https://maps.googleapis.com/maps/api/place/textsearch/json",
+                        params=params
+                    )
+                    data = response.json()
+                    places = data.get("results", [])
+                    
+                    if not places:
+                        break  # No more results from Google
 
-                    # Parse location from address
-                    addr_parts = address.split(",")
-                    parsed_city = addr_parts[-3].strip() if len(addr_parts) >= 3 else city
-                    parsed_state = addr_parts[-2].strip().split(" ")[0] if len(addr_parts) >= 2 else state
+                    for place in places:
+                        if len(results) >= limit:
+                            break
+                            
+                        place_id = place.get("place_id")
+                        if not place_id:
+                            continue
 
-                    results.append(CompanyResult(
-                        company_name=name,
-                        source=self.source_name,
-                        source_id=place_id,
-                        website=website,
-                        phone=None,
-                        address=address,
-                        city=parsed_city or city,
-                        state=parsed_state or state,
-                        country=country,
-                        rating=rating,
-                        review_count=review_count,
-                        industry=industry,
-                    ))
+                        # Fetch Place Details to get website and phone
+                        details_resp = await client.get(
+                            "https://maps.googleapis.com/maps/api/place/details/json",
+                            params={
+                                "place_id": place_id,
+                                "key": self.api_key,
+                                "fields": "name,website,formatted_phone_number,rating,user_ratings_total,formatted_address"
+                            }
+                        )
+                        details_data = details_resp.json()
+                        details = details_data.get("result", {})
+
+                        name = details.get("name") or place.get("name", "")
+                        website = details.get("website") or place.get("website")
+                        phone = details.get("formatted_phone_number")
+                        rating = details.get("rating") or place.get("rating")
+                        review_count = details.get("user_ratings_total") or place.get("user_ratings_total")
+                        address = details.get("formatted_address") or place.get("formatted_address", "")
+
+                        # Parse location from address
+                        addr_parts = address.split(",")
+                        parsed_city = addr_parts[-3].strip() if len(addr_parts) >= 3 else city
+                        parsed_state = addr_parts[-2].strip().split(" ")[0] if len(addr_parts) >= 2 else state
+
+                        results.append(CompanyResult(
+                            company_name=name,
+                            source=self.source_name,
+                            source_id=place_id,
+                            website=website,
+                            phone=phone,
+                            address=address,
+                            city=parsed_city or city,
+                            state=parsed_state or state,
+                            country=country,
+                            rating=rating,
+                            review_count=review_count,
+                            industry=industry,
+                        ))
+
+                    next_page_token = data.get("next_page_token")
+                    if not next_page_token:
+                        break  # No more pages
 
         except Exception as e:
-            # Fallback to mock on API error
-            return await self._fallback.search_companies(industry, city, state, country, limit)
+            # Do NOT fallback to mock if API key is present. Just return whatever we got so far.
+            # If we got 0, we return 0 so user knows Google failed.
+            pass
 
         return results
 
