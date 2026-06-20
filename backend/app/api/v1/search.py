@@ -167,10 +167,15 @@ async def cancel_job(
     if job.status in [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]:
         raise HTTPException(status_code=400, detail="Job cannot be cancelled in current state")
 
-    # Revoke Celery task
-    if job.celery_task_id:
-        from app.workers.celery_app import celery_app
-        celery_app.control.revoke(job.celery_task_id, terminate=True)
+    # Revoke Celery task (if it's an actual Celery task and Redis is available)
+    if job.celery_task_id and not job.celery_task_id.startswith("bg-"):
+        try:
+            from app.workers.celery_app import celery_app
+            celery_app.control.revoke(job.celery_task_id, terminate=True)
+        except Exception as e:
+            # Ignore connection errors if Redis isn't running
+            import logging
+            logging.getLogger(__name__).warning(f"Could not revoke celery task (possibly no Redis): {e}")
 
     await job_repo.mark_cancelled(job_id)
     await db.commit()
