@@ -205,6 +205,19 @@ class WebsiteCrawler:
 
                     # Emails
                     raw_emails = EMAIL_REGEX.findall(full_text) + EMAIL_REGEX.findall(full_html)
+                    
+                    # Explicitly check mailto links
+                    mailto_matches = re.findall(r'href=[\'"]mailto:([^\'"]+)[\'"]', full_html, re.IGNORECASE)
+                    for match in mailto_matches:
+                        clean_match = match.split('?')[0].strip()
+                        if clean_match:
+                            raw_emails.append(clean_match)
+                            
+                    # Find obfuscated emails (e.g. info [at] domain [dot] com)
+                    obfuscated_matches = re.findall(r'\b([A-Za-z0-9._%+\-]+)\s*(?:\[at\]|\(at\)|\s+at\s+)\s*([A-Za-z0-9.\-]+)\s*(?:\[dot\]|\(dot\)|\s+dot\s+)\s*([A-Za-z]{2,})\b', full_text, re.IGNORECASE)
+                    for m in obfuscated_matches:
+                        raw_emails.append(f"{m[0]}@{m[1]}.{m[2]}")
+
                     seen_emails = set()
                     for email in raw_emails:
                         cleaned = _clean_email(email)
@@ -319,7 +332,20 @@ class SimpleCrawler:
             full_text = soup.get_text(separator=" ")
 
             # Emails
-            raw_emails = EMAIL_REGEX.findall(full_text)
+            raw_emails = EMAIL_REGEX.findall(full_text) + EMAIL_REGEX.findall(full_html)
+            
+            # Explicitly check mailto links
+            mailto_matches = re.findall(r'href=[\'"]mailto:([^\'"]+)[\'"]', full_html, re.IGNORECASE)
+            for match in mailto_matches:
+                clean_match = match.split('?')[0].strip()
+                if clean_match:
+                    raw_emails.append(clean_match)
+                    
+            # Find obfuscated emails (e.g. info [at] domain [dot] com)
+            obfuscated_matches = re.findall(r'\b([A-Za-z0-9._%+\-]+)\s*(?:\[at\]|\(at\)|\s+at\s+)\s*([A-Za-z0-9.\-]+)\s*(?:\[dot\]|\(dot\)|\s+dot\s+)\s*([A-Za-z]{2,})\b', full_text, re.IGNORECASE)
+            for m in obfuscated_matches:
+                raw_emails.append(f"{m[0]}@{m[1]}.{m[2]}")
+
             seen = set()
             for email in raw_emails:
                 cleaned = _clean_email(email)
