@@ -175,9 +175,16 @@ async def _run_pipeline_async(task_or_job_id, job_id: str = None):
                     website_score = 0
 
                     if lead.website:
-                        # Crawl the website
-                        crawl_result = await crawler.crawl(lead.website)
-                        crawl_data = crawl_result.to_dict()
+                        # Crawl the website with an absolute failsafe timeout
+                        import asyncio
+                        try:
+                            crawl_result = await asyncio.wait_for(crawler.crawl(lead.website), timeout=45.0)
+                            crawl_data = crawl_result.to_dict()
+                        except asyncio.TimeoutError:
+                            logger.error(f"Crawler timed out entirely for {lead.website}")
+                            from app.infrastructure.crawlers.website_crawler import CrawlResult
+                            crawl_result = CrawlResult(lead.website)
+                            crawl_data = {}
 
                         # Save contact info from crawl
                         has_social = any([

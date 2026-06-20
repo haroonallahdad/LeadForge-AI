@@ -13,6 +13,7 @@ import Link from 'next/link';
 const COUNTRIES = [
   'USA', 'United Kingdom', 'Canada', 'Australia', 'Germany',
   'France', 'Spain', 'Italy', 'Netherlands', 'Pakistan', 'India',
+  'Saudi Arabia', 'United Arab Emirates', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'
 ];
 
 const US_STATES = [
