@@ -40,10 +40,17 @@ def _send_email(to_email: str, subject: str, body: str):
         logger.warning(f"{'='*60}")
         return
 
+    # Resend free tier requires 'onboarding@resend.dev' unless a custom domain is verified.
+    # Free providers like gmail can never be verified on Resend.
+    resend_from_email = FROM_EMAIL
+    free_providers = ["@gmail.com", "@yahoo.com", "@outlook.com", "@hotmail.com", "@icloud.com"]
+    if RESEND_API_KEY and any(FROM_EMAIL.lower().endswith(p) for p in free_providers):
+        resend_from_email = "LeadForge AI <onboarding@resend.dev>"
+
     # On Resend free tier, you can only send to the account owner's email.
     # If RESEND_OWNER_EMAIL is set, redirect there and log a warning.
     effective_recipient = to_email
-    if RESEND_API_KEY and FROM_EMAIL == "onboarding@resend.dev" and RESEND_OWNER_EMAIL:
+    if RESEND_API_KEY and ("onboarding@resend.dev" in resend_from_email) and RESEND_OWNER_EMAIL:
         effective_recipient = RESEND_OWNER_EMAIL
         logger.warning(
             f"[EMAIL] Resend free tier restriction: redirecting email for {to_email} "
@@ -55,7 +62,7 @@ def _send_email(to_email: str, subject: str, body: str):
         try:
             import requests as req
             payload = {
-                "from": FROM_EMAIL,
+                "from": resend_from_email,
                 "to": [effective_recipient],
                 "subject": subject,
                 "html": body,
