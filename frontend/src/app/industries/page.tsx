@@ -43,23 +43,23 @@ export default function IndustriesPage() {
         <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
           <Plus size={14} className="text-brand-400" /> Add Custom Industry
         </h3>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <input
             placeholder="Industry name (e.g., Solar Panel Companies)"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="input-dark flex-1"
+            className="input-dark w-full sm:flex-1"
           />
           <input
             placeholder="Category (optional)"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            className="input-dark w-44"
+            className="input-dark w-full sm:w-44"
           />
           <button
             onClick={() => newName.trim() && createMutation.mutate()}
             disabled={!newName.trim() || createMutation.isPending}
-            className="btn-primary px-5"
+            className="btn-primary w-full sm:w-auto px-5"
           >
             <Plus size={15} /> Add
           </button>

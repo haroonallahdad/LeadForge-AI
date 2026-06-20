@@ -99,7 +99,7 @@ export default function SearchPage() {
         {/* Search Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Industry */}
-          <div className="card-dark relative z-50">
+          <div className="card-dark relative z-30">
             <div className="flex items-center gap-2 mb-4">
               <Building2 size={16} className="text-brand-400" />
               <h3 className="text-sm font-semibold text-white">Industry</h3>
@@ -125,7 +125,7 @@ export default function SearchPage() {
               </div>
 
               {showDropdown && filteredIndustries.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-slate-950 border border-white/10 shadow-2xl rounded-xl overflow-hidden">
+                <div className="absolute z-50 w-full mt-1 bg-slate-950 border border-white/10 shadow-2xl rounded-xl overflow-hidden max-h-60 overflow-y-auto">
                   {filteredIndustries.map((industry) => (
                     <button
                       key={industry.id}
@@ -170,7 +170,7 @@ export default function SearchPage() {
           </div>
 
           {/* Location */}
-          <div className="card-dark relative z-40">
+          <div className="card-dark relative z-20">
             <div className="flex items-center gap-2 mb-4">
               <MapPin size={16} className="text-accent-400" />
               <h3 className="text-sm font-semibold text-white">Location</h3>

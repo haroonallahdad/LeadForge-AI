@@ -146,9 +146,9 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
         <div className="xl:col-span-2 space-y-5">
           {/* Company Info */}
           <div className="card-dark">
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <h2 className="text-xl font-bold text-white">{lead.company_name}</h2>
+            <div className="flex items-start justify-between gap-3 mb-5">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xl font-bold text-white break-words">{lead.company_name}</h2>
                 <p className="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
                   <MapPin size={13} />
                   {[lead.address || [lead.city, lead.state].filter(Boolean).join(', '), lead.country].filter(Boolean).join(' · ')}
@@ -185,7 +185,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
             )}
 
             {/* Contacts */}
-            <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               {/* Emails */}
               <div>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1">
