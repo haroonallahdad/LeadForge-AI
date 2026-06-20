@@ -155,6 +155,13 @@ async def _run_pipeline_async(task_or_job_id, job_id: str = None):
 
             for idx, lead in enumerate(leads_created):
                 try:
+                    # Check for cancellation
+                    from app.infrastructure.database.models import JobStatus
+                    current_job = await job_repo.get_by_id(UUID(job_id))
+                    if current_job and current_job.status == JobStatus.CANCELLED:
+                        logger.info(f"Job {job_id} cancelled by user, halting crawler.")
+                        break
+
                     current_progress = int(20 + (idx + 1) * progress_per_lead)
                     await job_repo.update_progress(
                         UUID(job_id),
@@ -268,14 +275,19 @@ async def _run_pipeline_async(task_or_job_id, job_id: str = None):
                     await db.rollback()
                     continue
 
-            # ── Step 6: Mark job completed ─────────────────────────────────────
-            await job_repo.mark_completed(UUID(job_id), {
-                "total_found": len(companies),
-                "total_crawled": len(leads_created),
-                "total_scored": len(leads_created),
-            })
-            await job_repo.append_log(UUID(job_id), f"Completed — {len(leads_created)} leads processed")
-            await db.commit()
+            # ── Step 6: Mark job completed (if not cancelled) ──────────────────
+            from app.infrastructure.database.models import JobStatus
+            final_job = await job_repo.get_by_id(UUID(job_id))
+            if final_job and final_job.status == JobStatus.CANCELLED:
+                logger.info(f"Job {job_id} was cancelled. Skipping completion mark.")
+            else:
+                await job_repo.mark_completed(UUID(job_id), {
+                    "total_found": len(companies),
+                    "total_crawled": len(leads_created),
+                    "total_scored": len(leads_created),
+                })
+                await job_repo.append_log(UUID(job_id), f"Completed — {len(leads_created)} leads processed")
+                await db.commit()
 
             logger.info(f"Job {job_id} completed: {len(leads_created)} leads")
 
