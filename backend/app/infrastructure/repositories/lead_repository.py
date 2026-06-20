@@ -59,6 +59,7 @@ class LeadRepository:
         sort_dir: str = "desc",
         tag_ids: Optional[List[UUID]] = None,
         user_id: Optional[UUID] = None,
+        job_id: Optional[UUID] = None,
     ) -> tuple[List[Lead], int]:
         """Get paginated leads with filtering and sorting."""
         query = select(Lead).options(
@@ -72,6 +73,9 @@ class LeadRepository:
             from app.infrastructure.database.models import SearchJob
             query = query.join(SearchJob, Lead.search_job_id == SearchJob.id)
             filters.append(SearchJob.user_id == user_id)
+
+        if job_id:
+            filters.append(Lead.search_job_id == job_id)
 
         if search:
             filters.append(

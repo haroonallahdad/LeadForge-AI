@@ -179,6 +179,7 @@ export interface LeadFilters {
   city?: string;
   min_score?: number;
   max_score?: number;
+  job_id?: string;
   sort_by?: string;
   sort_dir?: 'asc' | 'desc';
 }

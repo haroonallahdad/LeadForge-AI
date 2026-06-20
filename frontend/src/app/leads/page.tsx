@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi, exportApi } from '@/lib/api';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -117,7 +118,10 @@ function LeadCard({ lead, onStatusChange, onDelete }: { lead: LeadListItem; onSt
 // ── Main Page ────────────────────────────────────────────────────────────────
 export default function LeadsPage() {
   const queryClient = useQueryClient();
-  const [filters, setFilters] = useState<LeadFilters>({ sort_by: 'lead_score', sort_dir: 'desc' });
+  const searchParams = useSearchParams();
+  const initialJobId = searchParams.get('job_id') || undefined;
+  
+  const [filters, setFilters] = useState<LeadFilters>({ sort_by: 'lead_score', sort_dir: 'desc', job_id: initialJobId });
   const [page, setPage] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const limit = 50;

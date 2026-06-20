@@ -273,12 +273,18 @@ class GooglePlacesAdapter(BaseAdapter):
                         await asyncio.sleep(2)
 
                     # Text search to get place IDs
-                    response = await client.get(
-                        "https://maps.googleapis.com/maps/api/place/textsearch/json",
-                        params=params
-                    )
-                    data = response.json()
-                    places = data.get("results", [])
+                    places = []
+                    for _ in range(3):
+                        response = await client.get(
+                            "https://maps.googleapis.com/maps/api/place/textsearch/json",
+                            params=params
+                        )
+                        data = response.json()
+                        if data.get("status") == "INVALID_REQUEST" and next_page_token:
+                            await asyncio.sleep(2)
+                            continue
+                        places = data.get("results", [])
+                        break
                     
                     if not places:
                         break  # No more results from Google

@@ -142,6 +142,7 @@ async def list_leads(
     city: Optional[str] = None,
     min_score: Optional[int] = None,
     max_score: Optional[int] = None,
+    job_id: Optional[UUID] = None,
     sort_by: str = "lead_score",
     sort_dir: str = "desc",
     current_user=Depends(get_current_user),
@@ -155,7 +156,8 @@ async def list_leads(
         skip=skip, limit=limit, search=search, status=status,
         industry=industry, country=country, state=state, city=city,
         min_score=min_score, max_score=max_score,
-        sort_by=sort_by, sort_dir=sort_dir, user_id=user_id_filter
+        sort_by=sort_by, sort_dir=sort_dir, user_id=user_id_filter,
+        job_id=job_id
     )
     return {
         "total": total,
