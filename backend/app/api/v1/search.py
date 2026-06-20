@@ -174,3 +174,19 @@ async def cancel_job(
 
     await job_repo.mark_cancelled(job_id)
     await db.commit()
+
+
+@router.delete("/jobs/{job_id}/remove", status_code=204)
+async def delete_job(
+    job_id: UUID,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Permanently delete a job and all its leads."""
+    job_repo = SearchJobRepository(db)
+    job = await job_repo.get_by_id(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    await job_repo.db.delete(job)
+    await db.commit()

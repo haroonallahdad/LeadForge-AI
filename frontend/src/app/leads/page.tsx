@@ -7,7 +7,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import {
   Search, Download, ExternalLink, Mail, Phone,
   Globe, Star, ChevronUp, ChevronDown, RefreshCw, Eye,
-  Building2, MapPin
+  Building2, MapPin, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -40,7 +40,7 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 // ── Mobile Card ──────────────────────────────────────────────────────────────
-function LeadCard({ lead, onStatusChange }: { lead: LeadListItem; onStatusChange: (id: string, status: string) => void }) {
+function LeadCard({ lead, onStatusChange, onDelete }: { lead: LeadListItem; onStatusChange: (id: string, status: string) => void; onDelete: (id: string) => void }) {
   return (
     <div className="card-dark p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
@@ -63,6 +63,9 @@ function LeadCard({ lead, onStatusChange }: { lead: LeadListItem; onStatusChange
           <Link href={`/leads/${lead.id}`} className="text-brand-400 hover:text-brand-300">
             <Eye size={15} />
           </Link>
+          <button onClick={() => onDelete(lead.id)} className="text-slate-400 hover:text-red-400">
+            <Trash2 size={15} />
+          </button>
         </div>
       </div>
 
@@ -138,6 +141,24 @@ export default function LeadsPage() {
     mutationFn: () => exportApi.export('csv', selectedIds.length ? selectedIds : undefined),
     onSuccess: () => toast.success('Export started!'),
     onError: () => toast.error('Export failed'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => leadsApi.deleteLead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast.success('Lead deleted');
+      setSelectedIds(prev => prev.filter(id => id !== id));
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: () => leadsApi.bulkDeleteLeads(selectedIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast.success(`${selectedIds.length} leads deleted`);
+      setSelectedIds([]);
+    },
   });
 
   const totalPages = Math.ceil((data?.total || 0) / limit);
@@ -216,6 +237,9 @@ export default function LeadsPage() {
           <button onClick={() => exportMutation.mutate()} className="btn-primary text-xs py-1 px-3">
             <Download size={12} /> Export
           </button>
+          <button onClick={() => bulkDeleteMutation.mutate()} className="btn-danger text-xs py-1 px-3">
+            <Trash2 size={12} /> Delete All
+          </button>
           <button onClick={() => setSelectedIds([])} className="text-xs text-slate-400 hover:text-white">Clear</button>
         </div>
       )}
@@ -231,6 +255,7 @@ export default function LeadsPage() {
                 key={lead.id}
                 lead={lead}
                 onStatusChange={(id, status) => updateMutation.mutate({ id, status })}
+                onDelete={(id) => deleteMutation.mutate(id)}
               />
             ))
         }
@@ -373,12 +398,20 @@ export default function LeadsPage() {
                         </select>
                       </td>
                       <td className="p-3">
-                        <Link
-                          href={`/leads/${lead.id}`}
-                          className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1"
-                        >
-                          <Eye size={13} /> View
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/leads/${lead.id}`}
+                            className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1"
+                          >
+                            <Eye size={13} /> View
+                          </Link>
+                          <button
+                            onClick={() => deleteMutation.mutate(lead.id)}
+                            className="text-xs text-slate-400 hover:text-red-400 flex items-center gap-1"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

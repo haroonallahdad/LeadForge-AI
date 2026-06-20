@@ -218,6 +218,26 @@ async def delete_lead(
     await db.commit()
 
 
+@router.post("/bulk-delete", status_code=204)
+async def bulk_delete_leads(
+    data: dict,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete multiple leads permanently."""
+    lead_ids = data.get("lead_ids", [])
+    if not lead_ids:
+        return
+        
+    lead_repo = LeadRepository(db)
+    for lid in lead_ids:
+        try:
+            await lead_repo.delete(UUID(lid))
+        except:
+            pass
+    await db.commit()
+
+
 @router.post("/{lead_id}/notes", status_code=201)
 async def add_note(
     lead_id: UUID,

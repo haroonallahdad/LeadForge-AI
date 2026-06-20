@@ -149,6 +149,10 @@ export const searchApi = {
   cancelJob: async (id: string) => {
     await api.delete(`/api/v1/jobs/${id}`);
   },
+
+  deleteJob: async (id: string) => {
+    await api.delete(`/api/v1/jobs/${id}/remove`);
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -175,6 +179,10 @@ export const leadsApi = {
 
   deleteLead: async (id: string) => {
     await api.delete(`/api/v1/leads/${id}`);
+  },
+
+  bulkDeleteLeads: async (leadIds: string[]) => {
+    await api.post('/api/v1/leads/bulk-delete', { lead_ids: leadIds });
   },
 
   addNote: async (id: string, content: string) => {

@@ -6,7 +6,7 @@ import { searchApi } from '@/lib/api';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import {
   Briefcase, Clock, CheckCircle, XCircle, AlertCircle,
-  Loader2, Ban, RefreshCw, ChevronDown, ChevronUp, Play
+  Loader2, Ban, RefreshCw, ChevronDown, ChevronUp, Play, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -20,7 +20,7 @@ const STATUS_CONFIG: Record<JobStatus, { label: string; color: string; icon: any
   cancelled: { label: 'Cancelled', color: 'text-slate-500 bg-slate-600/20 border-slate-600/30', icon: Ban },
 };
 
-function JobCard({ job, onCancel }: { job: SearchJob; onCancel: (id: string) => void }) {
+function JobCard({ job, onCancel, onDelete }: { job: SearchJob; onCancel: (id: string) => void; onDelete: (id: string) => void }) {
   const [showLogs, setShowLogs] = useState(false);
   const cfg = STATUS_CONFIG[job.status];
   const Icon = cfg.icon;
@@ -57,12 +57,22 @@ function JobCard({ job, onCancel }: { job: SearchJob; onCancel: (id: string) => 
             </button>
           )}
           {job.status === 'completed' && (
-            <Link
-              href={`/leads?job_id=${job.id}`}
-              className="btn-primary text-xs py-1 px-2.5"
-            >
-              View Leads
-            </Link>
+            <>
+              <Link
+                href={`/leads?job_id=${job.id}`}
+                className="btn-primary text-xs py-1 px-2.5"
+              >
+                View Leads
+              </Link>
+              <button onClick={() => onDelete(job.id)} className="btn-secondary text-xs py-1 px-2.5 hover:text-red-400 hover:border-red-500/30" title="Delete job and leads">
+                <Trash2 size={12} />
+              </button>
+            </>
+          )}
+          {(job.status === 'failed' || job.status === 'cancelled') && (
+              <button onClick={() => onDelete(job.id)} className="btn-secondary text-xs py-1 px-2.5 hover:text-red-400 hover:border-red-500/30">
+                <Trash2 size={12} /> Delete
+              </button>
           )}
         </div>
       </div>
@@ -160,6 +170,15 @@ export default function JobsPage() {
     onError: () => toast.error('Failed to cancel job'),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: searchApi.deleteJob,
+    onSuccess: () => {
+      refetch();
+      toast.success('Job and its leads permanently deleted');
+    },
+    onError: () => toast.error('Failed to delete job'),
+  });
+
   const running = data?.items.filter(j => j.status === 'running' || j.status === 'queued') || [];
   const completed = data?.items.filter(j => j.status === 'completed') || [];
   const failed = data?.items.filter(j => j.status === 'failed' || j.status === 'cancelled') || [];
@@ -195,7 +214,7 @@ export default function JobsPage() {
           </h2>
           <div className="space-y-4">
             {running.map(job => (
-              <JobCard key={job.id} job={job} onCancel={cancelMutation.mutate} />
+              <JobCard key={job.id} job={job} onCancel={cancelMutation.mutate} onDelete={deleteMutation.mutate} />
             ))}
           </div>
         </div>
@@ -209,7 +228,7 @@ export default function JobsPage() {
           </h2>
           <div className="space-y-4">
             {completed.map(job => (
-              <JobCard key={job.id} job={job} onCancel={cancelMutation.mutate} />
+              <JobCard key={job.id} job={job} onCancel={cancelMutation.mutate} onDelete={deleteMutation.mutate} />
             ))}
           </div>
         </div>
@@ -223,7 +242,7 @@ export default function JobsPage() {
           </h2>
           <div className="space-y-4">
             {failed.map(job => (
-              <JobCard key={job.id} job={job} onCancel={cancelMutation.mutate} />
+              <JobCard key={job.id} job={job} onCancel={cancelMutation.mutate} onDelete={deleteMutation.mutate} />
             ))}
           </div>
         </div>
