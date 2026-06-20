@@ -15,7 +15,7 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 # Resend settings (HTTPS API - works on Hugging Face)
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 
-FROM_EMAIL = os.environ.get("FROM_EMAIL", "noreply@leadforge.ai")
+FROM_EMAIL = os.environ.get("FROM_EMAIL", "onboarding@resend.dev")
 
 def _send_email(to_email: str, subject: str, body: str):
     if not SMTP_SERVER and not RESEND_API_KEY:

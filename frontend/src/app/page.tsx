@@ -113,7 +113,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Free Plan */}
-            <div className="card-dark p-8 relative overflow-hidden group border-transparent hover:border-white/10 transition-colors">
+            <div className="card-dark p-8 relative overflow-hidden group border-transparent hover:border-white/10 transition-colors flex flex-col">
               <h3 className="text-2xl font-bold text-white mb-2">Free Plan</h3>
               <div className="flex items-baseline gap-2 mb-6">
                 <span className="text-4xl font-extrabold text-white">$0</span>
@@ -121,25 +121,29 @@ export default function HomePage() {
               </div>
               <p className="text-sm text-slate-400 mb-8 h-10">Perfect for exploring the platform capabilities.</p>
               
-              <ul className="space-y-4 mb-8">
+              <ul className="space-y-4 mb-8 flex-grow">
                 <li className="flex items-center gap-3 text-sm text-slate-300">
                   <CheckCircle2 size={18} className="text-slate-500" />
                   <span><strong>10 leads</strong> per search</span>
                 </li>
                 <li className="flex items-center gap-3 text-sm text-slate-300">
                   <CheckCircle2 size={18} className="text-slate-500" />
-                  <span>Max 25 leads / month</span>
+                  <span>Max 50 leads / month</span>
                 </li>
                 <li className="flex items-center gap-3 text-sm text-slate-300">
                   <CheckCircle2 size={18} className="text-slate-500" />
                   <span>Basic Heuristic Scoring</span>
                 </li>
+                <li className="flex items-center gap-3 text-sm text-slate-300">
+                  <CheckCircle2 size={18} className="text-slate-500" />
+                  <span>CSV Export</span>
+                </li>
               </ul>
-              <Link href="/login?mode=register" className="btn-secondary w-full justify-center py-3 border border-white/10 hover:bg-white/5 text-slate-300">Get Started</Link>
+              <Link href="/login?mode=register" className="btn-secondary w-full justify-center py-3 border border-white/10 hover:bg-white/5 text-slate-300 mt-auto">Get Started</Link>
             </div>
 
             {/* Simple Plan */}
-            <div className="card-dark p-8 relative overflow-hidden group">
+            <div className="card-dark p-8 relative overflow-hidden group flex flex-col">
               <div className="absolute top-0 right-0 w-32 h-32 bg-slate-800/50 rounded-bl-full -z-10 transition-transform group-hover:scale-110" />
               <h3 className="text-2xl font-bold text-white mb-2">Simple Plan</h3>
               <div className="flex items-baseline gap-2 mb-6">
@@ -148,7 +152,7 @@ export default function HomePage() {
               </div>
               <p className="text-sm text-slate-400 mb-8 h-10">Perfect for freelance developers starting their outreach.</p>
               
-              <ul className="space-y-4 mb-8">
+              <ul className="space-y-4 mb-8 flex-grow">
                 <li className="flex items-center gap-3 text-sm text-slate-300">
                   <CheckCircle2 size={18} className="text-brand-400" />
                   <span>Up to <strong>500 leads</strong> per month</span>
@@ -166,11 +170,11 @@ export default function HomePage() {
                   <span>CSV Export</span>
                 </li>
               </ul>
-              <Link href="/login?mode=register" className="btn-secondary w-full justify-center py-3">Choose Simple</Link>
+              <Link href="/login?mode=register" className="btn-secondary w-full justify-center py-3 mt-auto">Choose Simple</Link>
             </div>
 
             {/* Premium Plan */}
-            <div className="card-dark p-8 relative overflow-hidden border-brand-500/50 shadow-2xl shadow-brand-500/10 group">
+            <div className="card-dark p-8 relative overflow-hidden border-brand-500/50 shadow-2xl shadow-brand-500/10 group flex flex-col">
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-500 to-accent-500" />
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-bl-full -z-10 transition-transform group-hover:scale-110" />
               <div className="absolute top-4 right-4 bg-brand-500/20 text-brand-400 text-xs font-bold px-3 py-1 rounded-full">RECOMMENDED</div>
@@ -182,7 +186,7 @@ export default function HomePage() {
               </div>
               <p className="text-sm text-slate-400 mb-8 h-10">For agencies scaling their B2B client acquisition.</p>
               
-              <ul className="space-y-4 mb-8">
+              <ul className="space-y-4 mb-8 flex-grow">
                 <li className="flex items-center gap-3 text-sm text-slate-300">
                   <CheckCircle2 size={18} className="text-accent-400" />
                   <span><strong>Unlimited leads</strong> per month</span>
@@ -200,7 +204,7 @@ export default function HomePage() {
                   <span>AI Pitch Generation</span>
                 </li>
               </ul>
-              <Link href="/login?mode=register" className="btn-primary w-full justify-center py-3">Choose Premium</Link>
+              <Link href="/login?mode=register" className="btn-primary w-full justify-center py-3 mt-auto">Choose Premium</Link>
             </div>
           </div>
         </div>
