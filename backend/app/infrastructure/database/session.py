@@ -58,6 +58,19 @@ async def init_db() -> None:
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         
+        # Add missing columns safely to existing tables
+        try:
+            from sqlalchemy import text
+            await conn.execute(text("ALTER TABLE users ADD COLUMN subscription_plan VARCHAR(50) DEFAULT 'FREE';"))
+        except Exception:
+            pass
+
+        try:
+            from sqlalchemy import text
+            await conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);"))
+        except Exception:
+            pass
+
         # Add subscription_end_date column safely to existing tables
         try:
             from sqlalchemy import text
