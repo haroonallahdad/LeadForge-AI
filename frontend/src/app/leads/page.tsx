@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi, exportApi } from '@/lib/api';
@@ -116,7 +116,7 @@ function LeadCard({ lead, onStatusChange, onDelete }: { lead: LeadListItem; onSt
 }
 
 // ── Main Page ────────────────────────────────────────────────────────────────
-export default function LeadsPage() {
+function LeadsContent() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const initialJobId = searchParams.get('job_id') || undefined;
@@ -465,5 +465,21 @@ export default function LeadsPage() {
         </div>
       )}
     </DashboardLayout>
+  );
+}
+
+export default function LeadsPage() {
+  return (
+    <Suspense
+      fallback={
+        <DashboardLayout>
+          <div className="flex h-64 items-center justify-center">
+            <RefreshCw className="h-8 w-8 animate-spin text-orange-500" />
+          </div>
+        </DashboardLayout>
+      }
+    >
+      <LeadsContent />
+    </Suspense>
   );
 }
