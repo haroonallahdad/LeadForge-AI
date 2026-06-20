@@ -173,15 +173,22 @@ async def _run_pipeline_async(task_or_job_id, job_id: str = None):
                         crawl_data = crawl_result.to_dict()
 
                         # Save contact info from crawl
-                        if crawl_result.emails or crawl_result.phones:
+                        has_social = any([
+                            crawl_result.facebook_url, crawl_result.instagram_url,
+                            crawl_result.linkedin_url, crawl_result.twitter_url,
+                            crawl_result.youtube_url
+                        ])
+
+                        if crawl_result.emails or crawl_result.phones or has_social:
                             for email in crawl_result.emails[:3]:
                                 await lead_repo.add_contact_info(lead.id, {
                                     "email": email,
                                     "source": "website_crawl",
                                 })
-                            if crawl_result.phones:
+                            
+                            if crawl_result.phones or has_social:
                                 await lead_repo.add_contact_info(lead.id, {
-                                    "phone": crawl_result.phones[0],
+                                    "phone": crawl_result.phones[0] if crawl_result.phones else None,
                                     "source": "website_crawl",
                                     "facebook_url": crawl_result.facebook_url,
                                     "instagram_url": crawl_result.instagram_url,
