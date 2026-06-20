@@ -262,15 +262,19 @@ class GooglePlacesAdapter(BaseAdapter):
         try:
             async with httpx.AsyncClient(timeout=30) as client:
                 while len(results) < limit:
-                    params = {
-                        "query": query,
-                        "key": self.api_key,
-                        "type": "establishment",
-                    }
                     if next_page_token:
-                        params["pagetoken"] = next_page_token
+                        params = {
+                            "pagetoken": next_page_token,
+                            "key": self.api_key,
+                        }
                         # Google requires a short delay before next_page_token becomes valid
                         await asyncio.sleep(2)
+                    else:
+                        params = {
+                            "query": query,
+                            "key": self.api_key,
+                            "type": "establishment",
+                        }
 
                     # Text search to get place IDs
                     places = []
