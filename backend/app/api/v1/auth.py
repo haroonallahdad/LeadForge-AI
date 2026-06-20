@@ -9,7 +9,7 @@ from pydantic import BaseModel, EmailStr
 from app.infrastructure.database.session import get_db
 from app.infrastructure.repositories.job_repository import UserRepository
 from app.infrastructure.database.models import PaymentProof, User
-from app.application.services.auth_service import hash_password, verify_password, create_access_token
+from app.application.services.auth_service import hash_password, verify_password, create_access_token, create_verification_token
 from app.infrastructure.services.email_service import send_verification_email, send_password_reset_email
 from app.api.deps import get_current_user
 
@@ -64,11 +64,11 @@ async def register(data: RegisterRequest, background_tasks: BackgroundTasks, db:
             }
         }
     
-    # Generate verification token (just using access token generator for simplicity)
-    verify_token = create_access_token(str(user.id), user.email, "verify")
+    # Use long-lived verification token (7 days) so server restarts don't invalidate it
+    verify_token = create_verification_token(str(user.id), user.email, "verify", expire_minutes=60 * 24 * 7)
     background_tasks.add_task(send_verification_email, user.email, verify_token)
     
-    return {"status": "pending_verification", "message": "Verification email sent"}
+    return {"status": "pending_verification", "message": "Verification email sent! Please check your inbox and spam folder."}
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -143,12 +143,12 @@ async def forgot_password(data: ForgotPasswordRequest, background_tasks: Backgro
     user = await user_repo.get_by_email(data.email)
     
     if user:
-        reset_token = create_access_token(str(user.id), user.email, "reset")
+        reset_token = create_verification_token(str(user.id), user.email, "reset", expire_minutes=60)
         background_tasks.add_task(send_password_reset_email, user.email, reset_token)
     
     return {
         "status": "success", 
-        "message": "If an account exists for that email, a password reset link has been sent."
+        "message": "If an account exists for that email, a password reset link has been sent. Check your inbox and spam folder."
     }
 
 class VerifyEmailRequest(BaseModel):
@@ -157,9 +157,14 @@ class VerifyEmailRequest(BaseModel):
 @router.post("/verify-email", status_code=200)
 async def verify_email(data: VerifyEmailRequest, db: AsyncSession = Depends(get_db)):
     from app.application.services.auth_service import decode_access_token
-    payload = decode_access_token(data.token)
+    
+    try:
+        payload = decode_access_token(data.token)
+    except Exception:
+        payload = None
+        
     if not payload or payload.get("role") != "verify":
-        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token. Please register again.")
     
     user_id = payload.get("sub")
     
@@ -174,7 +179,7 @@ async def verify_email(data: VerifyEmailRequest, db: AsyncSession = Depends(get_
     user.is_active = True
     await db.commit()
     
-    return {"status": "success", "message": "Email verified successfully. You can now log in."}
+    return {"status": "success", "message": "Email verified successfully! You can now log in."}
 
 class ResetPasswordRequest(BaseModel):
     token: str
@@ -183,9 +188,14 @@ class ResetPasswordRequest(BaseModel):
 @router.post("/reset-password", status_code=200)
 async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
     from app.application.services.auth_service import decode_access_token
-    payload = decode_access_token(data.token)
+    
+    try:
+        payload = decode_access_token(data.token)
+    except Exception:
+        payload = None
+        
     if not payload or payload.get("role") != "reset":
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        raise HTTPException(status_code=400, detail="Invalid or expired reset link. Please request a new one.")
     
     user_id = payload.get("sub")
     
@@ -199,4 +209,4 @@ async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(
     user.hashed_password = hash_password(data.new_password)
     await db.commit()
     
-    return {"status": "success", "message": "Password reset successfully. You can now log in."}
+    return {"status": "success", "message": "Password reset successfully! You can now log in with your new password."}
