@@ -38,7 +38,17 @@ async def register(data: RegisterRequest, background_tasks: BackgroundTasks, db:
     user_repo = UserRepository(db)
     existing = await user_repo.get_by_email(data.email)
     if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        if not existing.is_verified:
+            # Allow re-registration for unverified accounts
+            existing.hashed_password = hash_password(data.password)
+            existing.full_name = data.full_name
+            await db.commit()
+
+            verify_token = create_verification_token(str(existing.id), existing.email, "verify", expire_minutes=60 * 24 * 7)
+            background_tasks.add_task(send_verification_email, existing.email, verify_token)
+            return {"status": "pending_verification", "message": "Verification email resent! Please check your inbox and spam folder."}
+        else:
+            raise HTTPException(status_code=400, detail="Email already registered")
 
     is_root = data.email.lower() == "haroonallahdad@outlook.com"
     user = await user_repo.create({
