@@ -87,6 +87,7 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     subscription_plan = Column(String(50), default="FREE") # FREE, SIMPLE, PREMIUM
     subscription_end_date = Column(DateTime(timezone=True), nullable=True)
+    webhook_url = Column(String(500), nullable=True)
     avatar_url = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

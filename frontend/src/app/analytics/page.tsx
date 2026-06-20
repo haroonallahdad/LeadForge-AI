@@ -34,7 +34,7 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <DashboardLayout title="Analytics">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton h-28 rounded-xl" />)}
         </div>
       </DashboardLayout>
@@ -46,7 +46,7 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout title="Analytics" subtitle="Platform performance and lead insights">
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: 'Total Leads', value: a?.total_leads ?? 0, suffix: '', color: 'text-brand-400' },
           { label: 'Avg Lead Score', value: a?.avg_lead_score ?? 0, suffix: '', color: 'text-cyan-400' },
@@ -130,7 +130,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Top lists */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="card-dark">
           <h3 className="text-sm font-semibold text-white mb-4">Top Industries</h3>
           <div className="space-y-2.5">

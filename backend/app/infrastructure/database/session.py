@@ -68,3 +68,10 @@ async def init_db() -> None:
             except Exception:
                 pass
 
+        # Add webhook_url column safely to existing tables
+        try:
+            from sqlalchemy import text
+            await conn.execute(text("ALTER TABLE users ADD COLUMN webhook_url VARCHAR(500);"))
+        except Exception:
+            pass
+

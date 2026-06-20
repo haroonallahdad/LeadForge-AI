@@ -24,8 +24,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <DashboardLayout title="Settings" subtitle="Platform configuration and API keys">
-      <div className="max-w-2xl space-y-5">
+    <DashboardLayout title="Settings" subtitle="Platform configuration and security">
+      <div className="max-w-2xl mx-auto space-y-5">
         {/* Info */}
         <div className="flex items-start gap-3 p-4 rounded-xl bg-brand-500/10 border border-brand-500/20">
           <Info size={15} className="text-brand-400 mt-0.5" />
@@ -52,8 +52,8 @@ export default function SettingsPage() {
                   status === 'active' ? 'bg-success-400 animate-pulse' :
                   status === 'inactive' ? 'bg-slate-500' : 'bg-amber-500/50'
                 }`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-white">{name}</span>
                     <span className={`badge text-xs ${
                       status === 'active' ? 'bg-success-500/20 text-success-400 border-success-500/30' :
@@ -65,7 +65,7 @@ export default function SettingsPage() {
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
                 </div>
-                <code className="text-xs text-slate-600 font-mono">{env}</code>
+                <code className="text-xs text-slate-600 font-mono max-w-[120px] truncate hidden sm:block">{env}</code>
               </div>
             ))}
           </div>

@@ -22,6 +22,7 @@ from app.api.v1.misc import (
 )
 from app.api.v1.admin import router as admin_router
 from app.api.v1.payments import router as payments_router
+from app.api.v1.webhooks import router as webhooks_router
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Logging
@@ -95,6 +96,7 @@ app.include_router(analytics_router, prefix=API_PREFIX)
 app.include_router(industries_router, prefix=API_PREFIX)
 app.include_router(email_router, prefix=API_PREFIX)
 app.include_router(payments_router, prefix=API_PREFIX)
+app.include_router(webhooks_router, prefix=API_PREFIX)
 app.include_router(admin_router, prefix=API_PREFIX)
 
 

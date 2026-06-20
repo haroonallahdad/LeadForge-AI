@@ -5,9 +5,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi, exportApi } from '@/lib/api';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import {
-  Search, Filter, Download, ExternalLink, Mail, Phone,
+  Search, Download, ExternalLink, Mail, Phone,
   Globe, Star, ChevronUp, ChevronDown, RefreshCw, Eye,
-  Building2, MapPin, MoreHorizontal
+  Building2, MapPin
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -20,7 +20,7 @@ const STATUS_OPTIONS: LeadStatus[] = [
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
   new: 'New', researching: 'Researching', contacted: 'Contacted',
-  follow_up: 'Follow Up', interested: 'Interested', meeting_scheduled: 'Meeting Scheduled',
+  follow_up: 'Follow Up', interested: 'Interested', meeting_scheduled: 'Meeting',
   proposal_sent: 'Proposal Sent', closed_won: 'Closed Won', closed_lost: 'Closed Lost', rejected: 'Rejected',
 };
 
@@ -39,12 +39,84 @@ function ScoreBadge({ score }: { score: number }) {
   return <span className="score-badge-low">{score}</span>;
 }
 
+// ── Mobile Card ──────────────────────────────────────────────────────────────
+function LeadCard({ lead, onStatusChange }: { lead: LeadListItem; onStatusChange: (id: string, status: string) => void }) {
+  return (
+    <div className="card-dark p-4 space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="font-semibold text-white text-sm truncate">{lead.company_name}</h3>
+          {lead.website && (
+            <a
+              href={lead.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-slate-500 hover:text-accent-400 flex items-center gap-1 mt-0.5"
+            >
+              <Globe size={9} />
+              {lead.website.replace(/https?:\/\/(www\.)?/, '').split('/')[0]}
+            </a>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <ScoreBadge score={lead.lead_score} />
+          <Link href={`/leads/${lead.id}`} className="text-brand-400 hover:text-brand-300">
+            <Eye size={15} />
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 text-xs text-slate-400">
+        {lead.industry && (
+          <span className="flex items-center gap-1">
+            <Building2 size={10} /> {lead.industry}
+          </span>
+        )}
+        {(lead.city || lead.country) && (
+          <span className="flex items-center gap-1">
+            <MapPin size={10} /> {[lead.city, lead.state].filter(Boolean).join(', ') || lead.country}
+          </span>
+        )}
+        {lead.rating != null && (
+          <span className="flex items-center gap-1">
+            <Star size={10} className="text-yellow-400 fill-yellow-400" /> {lead.rating}
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <select
+          value={lead.status}
+          onChange={(e) => onStatusChange(lead.id, e.target.value)}
+          className={`text-xs rounded-lg px-2 py-1 bg-transparent border border-white/10 cursor-pointer flex-1 ${STATUS_CLASSES[lead.status]}`}
+        >
+          {STATUS_OPTIONS.map(s => (
+            <option key={s} value={s} className="bg-slate-900 text-white">{STATUS_LABELS[s]}</option>
+          ))}
+        </select>
+        <div className="flex gap-2">
+          {lead.emails[0] && (
+            <a href={`mailto:${lead.emails[0]}`} className="text-slate-400 hover:text-white">
+              <Mail size={14} />
+            </a>
+          )}
+          {lead.phones[0] && (
+            <a href={`tel:${lead.phones[0]}`} className="text-slate-400 hover:text-white">
+              <Phone size={14} />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ────────────────────────────────────────────────────────────────
 export default function LeadsPage() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<LeadFilters>({ sort_by: 'lead_score', sort_dir: 'desc' });
   const [page, setPage] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
   const limit = 50;
 
   const { data, isLoading, refetch } = useQuery({
@@ -94,72 +166,85 @@ export default function LeadsPage() {
             className="btn-secondary text-xs py-1.5 px-3"
           >
             <Download size={13} />
-            {selectedIds.length ? `Export (${selectedIds.length})` : 'Export All'}
+            <span className="hidden sm:inline">{selectedIds.length ? `Export (${selectedIds.length})` : 'Export'}</span>
           </button>
           <Link href="/search" className="btn-primary text-xs py-1.5 px-3">
-            <Search size={13} /> New Search
+            <Search size={13} /> <span className="hidden sm:inline">New Search</span>
           </Link>
         </div>
       }
     >
       {/* Filters Bar */}
-      <div className="glass rounded-xl p-3 mb-4 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-48">
+      <div className="glass rounded-xl p-3 mb-4 space-y-2 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+        <div className="relative flex-1 min-w-0">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             placeholder="Search companies..."
             value={filters.search || ''}
             onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(0); }}
-            className="input-dark pl-8 py-1.5 text-sm"
+            className="input-dark pl-8 py-1.5 text-sm w-full"
           />
         </div>
 
-        <select
-          value={filters.status || ''}
-          onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(0); }}
-          className="input-dark py-1.5 text-sm w-36"
-        >
-          <option value="">All Status</option>
-          {STATUS_OPTIONS.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
-        </select>
+        <div className="grid grid-cols-3 gap-2 sm:contents">
+          <select
+            value={filters.status || ''}
+            onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(0); }}
+            className="input-dark py-1.5 text-sm"
+          >
+            <option value="">All Status</option>
+            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
+          </select>
 
-        <input
-          placeholder="Industry..."
-          value={filters.industry || ''}
-          onChange={(e) => { setFilters({ ...filters, industry: e.target.value }); setPage(0); }}
-          className="input-dark py-1.5 text-sm w-36"
-        />
+          <input
+            placeholder="Industry..."
+            value={filters.industry || ''}
+            onChange={(e) => { setFilters({ ...filters, industry: e.target.value }); setPage(0); }}
+            className="input-dark py-1.5 text-sm"
+          />
 
-        <input
-          placeholder="City..."
-          value={filters.city || ''}
-          onChange={(e) => { setFilters({ ...filters, city: e.target.value }); setPage(0); }}
-          className="input-dark py-1.5 text-sm w-32"
-        />
-
-        <button onClick={() => refetch()} className="btn-secondary py-1.5 px-3 text-xs">
-          <RefreshCw size={13} />
-        </button>
+          <button onClick={() => refetch()} className="btn-secondary py-1.5 px-3 text-xs flex items-center justify-center gap-1">
+            <RefreshCw size={13} />
+          </button>
+        </div>
       </div>
 
       {/* Bulk Actions */}
       {selectedIds.length > 0 && (
-        <div className="mb-3 flex items-center gap-3 p-3 rounded-xl bg-brand-500/10 border border-brand-500/25">
+        <div className="mb-3 flex flex-wrap items-center gap-3 p-3 rounded-xl bg-brand-500/10 border border-brand-500/25">
           <span className="text-sm text-brand-300">{selectedIds.length} selected</span>
-          <button
-            onClick={() => exportMutation.mutate()}
-            className="btn-primary text-xs py-1 px-3"
-          >
-            <Download size={12} /> Export Selected
+          <button onClick={() => exportMutation.mutate()} className="btn-primary text-xs py-1 px-3">
+            <Download size={12} /> Export
           </button>
-          <button onClick={() => setSelectedIds([])} className="text-xs text-slate-400 hover:text-white">
-            Clear
-          </button>
+          <button onClick={() => setSelectedIds([])} className="text-xs text-slate-400 hover:text-white">Clear</button>
         </div>
       )}
 
-      {/* Table */}
-      <div className="glass rounded-xl overflow-hidden">
+      {/* ── Mobile: Card Layout ─────────────────────────────── */}
+      <div className="block md:hidden space-y-3">
+        {isLoading
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="skeleton h-36 rounded-xl" />
+            ))
+          : data?.items.map((lead: LeadListItem) => (
+              <LeadCard
+                key={lead.id}
+                lead={lead}
+                onStatusChange={(id, status) => updateMutation.mutate({ id, status })}
+              />
+            ))
+        }
+        {!isLoading && !data?.items.length && (
+          <div className="empty-state py-12">
+            <Building2 size={36} className="text-slate-700 mb-4" />
+            <p className="text-slate-400 font-medium">No leads found</p>
+            <Link href="/search" className="btn-primary mt-4 text-sm">Start Search</Link>
+          </div>
+        )}
+      </div>
+
+      {/* ── Desktop: Table Layout ───────────────────────────── */}
+      <div className="hidden md:block glass rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -167,7 +252,7 @@ export default function LeadsPage() {
                 <th className="p-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedIds.length === data?.items.length && data?.items.length > 0}
+                    checked={selectedIds.length === data?.items.length && (data?.items.length ?? 0) > 0}
                     onChange={selectAll}
                     className="rounded accent-brand-500"
                   />
@@ -317,7 +402,7 @@ export default function LeadsPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-wrap items-center justify-between mt-4 gap-3">
           <p className="text-xs text-slate-400">
             Showing {page * limit + 1}–{Math.min((page + 1) * limit, data?.total || 0)} of {data?.total} leads
           </p>
