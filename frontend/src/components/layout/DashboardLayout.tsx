@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { Bell, HelpCircle, Check, Trash2 } from 'lucide-react';
+import { Bell, HelpCircle, Check, Trash2, Menu } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
@@ -18,6 +18,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, title, subtitle, actions }: DashboardLayoutProps) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -85,15 +86,23 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Top Header */}
-        <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 glass border-b border-white/5 relative z-40">
-          <div>
-            {title && <h1 className="text-lg font-semibold text-white">{title}</h1>}
-            {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
-          </div>
+        <header className="h-16 flex-shrink-0 flex items-center justify-between px-4 md:px-6 glass border-b border-white/5 relative z-40">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white"
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              {title && <h1 className="text-lg font-semibold text-white">{title}</h1>}
+              {subtitle && <p className="text-xs text-slate-400 hidden sm:block">{subtitle}</p>}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 md:gap-3">
             {actions}
             <Link 
               href="/docs"
@@ -158,7 +167,7 @@ export function DashboardLayout({ children, title, subtitle, actions }: Dashboar
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6 page-enter">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 page-enter">
           {children}
         </main>
       </div>

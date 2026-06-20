@@ -175,7 +175,7 @@ export default function SearchPage() {
               <MapPin size={16} className="text-accent-400" />
               <h3 className="text-sm font-semibold text-white">Location</h3>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5">Country *</label>
                 <select

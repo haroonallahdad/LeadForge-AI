@@ -72,7 +72,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <DashboardLayout title="Dashboard" subtitle="Overview of your lead intelligence">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="skeleton h-32 rounded-2xl" />
           ))}
@@ -86,7 +86,7 @@ export default function DashboardPage() {
   return (
     <DashboardLayout title="Dashboard" subtitle="Your lead intelligence overview">
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6">
         <StatCard label="Total Leads" value={a?.total_leads ?? 0} icon={Users} color="brand" trend="+12% this month" />
         <StatCard label="Avg Lead Score" value={a?.avg_lead_score ?? 0} icon={Target} color="cyan" />
         <StatCard label="Contacted" value={a?.contacted_leads ?? 0} icon={TrendingUp} color="green" />
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Conversion KPIs */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div className="card-dark">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-white">Contact Rate</p>

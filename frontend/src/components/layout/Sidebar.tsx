@@ -24,14 +24,27 @@ const NAV_ITEMS = [
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isOpen, onClose }: { isOpen?: boolean, onClose?: () => void }) {
   const pathname = usePathname();
   const { user } = useUser();
 
   return (
-    <aside className="w-64 flex-shrink-0 h-screen sticky top-0 flex flex-col glass border-r border-white/5 z-30">
-      {/* Logo */}
-      <div className="p-5 border-b border-white/5">
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 flex flex-col glass border-r border-white/5 
+        transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        {/* Logo */}
+        <div className="p-5 border-b border-white/5">
         <div className="flex items-center gap-3">
           <div
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -135,5 +148,6 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }
