@@ -58,33 +58,22 @@ async def init_db() -> None:
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         
-        # Add missing columns safely to existing tables
-        try:
-            from sqlalchemy import text
-            await conn.execute(text("ALTER TABLE users ADD COLUMN subscription_plan VARCHAR(50) DEFAULT 'FREE';"))
-        except Exception:
-            pass
-
-        try:
-            from sqlalchemy import text
-            await conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);"))
-        except Exception:
-            pass
-
-        # Add subscription_end_date column safely to existing tables
-        try:
-            from sqlalchemy import text
-            await conn.execute(text("ALTER TABLE users ADD COLUMN subscription_end_date TIMESTAMP WITH TIME ZONE;"))
-        except Exception:
+    # Run migrations in autocommit mode so failed ALTER statements don't abort a transaction block
+    from sqlalchemy import text
+    async with async_engine.connect() as conn:
+        await conn.execution_options(isolation_level="AUTOCOMMIT")
+        
+        migrations = [
+            "ALTER TABLE users ADD COLUMN subscription_plan VARCHAR(50) DEFAULT 'FREE';",
+            "ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);",
+            "ALTER TABLE users ADD COLUMN subscription_end_date TIMESTAMP WITH TIME ZONE;",
+            "ALTER TABLE users ADD COLUMN subscription_end_date DATETIME;",
+            "ALTER TABLE users ADD COLUMN webhook_url VARCHAR(500);"
+        ]
+        
+        for migration in migrations:
             try:
-                await conn.execute(text("ALTER TABLE users ADD COLUMN subscription_end_date DATETIME;"))
+                await conn.execute(text(migration))
             except Exception:
                 pass
-
-        # Add webhook_url column safely to existing tables
-        try:
-            from sqlalchemy import text
-            await conn.execute(text("ALTER TABLE users ADD COLUMN webhook_url VARCHAR(500);"))
-        except Exception:
-            pass
 
