@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     crawl_delay_seconds: float = 2.0
     max_concurrent_crawls: int = 5
     request_timeout_seconds: int = 15
-    use_mock_adapter: bool = True
+    use_mock_adapter: bool = False
 
     # Export
     export_dir: str = "./exports"
