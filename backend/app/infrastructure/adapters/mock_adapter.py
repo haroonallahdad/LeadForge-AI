@@ -254,52 +254,57 @@ class GooglePlacesAdapter(BaseAdapter):
 
         import httpx
         import asyncio
+        import httpx
+        import asyncio
         results = []
+        seen_places = set()
         location_str = self.build_location_string(city, state, country)
-        query = f"{industry} in {location_str}"
-        next_page_token = None
+        
+        # We cycle through query variations to bypass the strict 20-limit of a single query 
+        # without needing to rely on Google's fragile next_page_token delays.
+        variations = [
+            f"{industry} in {location_str}",
+            f"Top {industry} in {location_str}",
+            f"Best {industry} in {location_str}",
+            f"Popular {industry} in {location_str}",
+            f"Local {industry} in {location_str}",
+            f"Affordable {industry} in {location_str}",
+            f"Professional {industry} in {location_str}",
+            f"Certified {industry} in {location_str}",
+            f"Recommended {industry} in {location_str}",
+            f"Nearest {industry} in {location_str}",
+        ]
 
         try:
             async with httpx.AsyncClient(timeout=30) as client:
-                while len(results) < limit:
-                    if next_page_token:
-                        params = {
-                            "pagetoken": next_page_token,
-                            "key": self.api_key,
-                        }
-                        # Google requires a short delay before next_page_token becomes valid
-                        await asyncio.sleep(2)
-                    else:
-                        params = {
+                for query in variations:
+                    if len(results) >= limit:
+                        break
+
+                    # Text search to get place IDs
+                    response = await client.get(
+                        "https://maps.googleapis.com/maps/api/place/textsearch/json",
+                        params={
                             "query": query,
                             "key": self.api_key,
                             "type": "establishment",
                         }
+                    )
+                    data = response.json()
+                    places = data.get("results", [])
 
-                    # Text search to get place IDs
-                    places = []
-                    for _ in range(3):
-                        response = await client.get(
-                            "https://maps.googleapis.com/maps/api/place/textsearch/json",
-                            params=params
-                        )
-                        data = response.json()
-                        if data.get("status") == "INVALID_REQUEST" and next_page_token:
-                            await asyncio.sleep(2)
-                            continue
-                        places = data.get("results", [])
-                        break
-                    
                     if not places:
-                        break  # No more results from Google
+                        continue  # Try next variation if this one yields nothing
 
                     for place in places:
                         if len(results) >= limit:
                             break
                             
                         place_id = place.get("place_id")
-                        if not place_id:
+                        if not place_id or place_id in seen_places:
                             continue
+                            
+                        seen_places.add(place_id)
 
                         # Fetch Place Details to get website and phone
                         details_resp = await client.get(
@@ -339,10 +344,6 @@ class GooglePlacesAdapter(BaseAdapter):
                             review_count=review_count,
                             industry=industry,
                         ))
-
-                    next_page_token = data.get("next_page_token")
-                    if not next_page_token:
-                        break  # No more pages
 
         except Exception as e:
             # Do NOT fallback to mock if API key is present. Just return whatever we got so far.
